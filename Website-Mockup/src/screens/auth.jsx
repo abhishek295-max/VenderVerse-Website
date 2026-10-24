@@ -123,7 +123,7 @@ export function Login({ params = {} }) {
           </div>
           <div className="vv-login-art-copy"><h2>Plan with confidence</h2><p>Compare proposals, confirm bookings and keep every detail in one place.</p></div>
         </aside>
-        <form className="vv-login-form p-5 sm:p-7" onSubmit={submit}>
+        <form className="vv-login-form p-5 sm:p-7" onSubmit={submit} onKeyDown={(event) => { if (event.key === 'Enter' && event.target?.tagName === 'INPUT') { event.preventDefault(); submit(event) } }}>
           <div>
             <p className="vv-login-eyebrow">WELCOME BACK</p>
             <h2 className="text-2xl font-extrabold tracking-tight">Sign in</h2>
