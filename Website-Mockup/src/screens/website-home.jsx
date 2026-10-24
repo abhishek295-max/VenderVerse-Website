@@ -68,8 +68,7 @@ export function WebsiteHome() {
             <div className="vv-market-facts mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-white/65"><span className="inline-flex items-center gap-1.5"><MapPin size={14} /> Jaipur, Rajasthan</span><span>Verified businesses</span><span>Direct conversations</span></div>
           </div>
           <div className="vv-hero-side relative hidden min-h-[370px] lg:block">
-            <HeroMotion />
-            <div className="absolute inset-7 rounded-[2.5rem] bg-gradient-to-br from-teal-300/30 via-brand-500/20 to-indigo-400/20 blur-2xl" />
+            <img className="vv-hero-image" src="/hero-home-services.svg" alt="Customer discovers a home services vendor and tracks the order" />
             <div className="vv-hero-feature-panel absolute right-10 top-8 w-[min(100%,440px)] rotate-2 rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between"><div><p className="text-xs font-semibold text-teal-100">GLOBAL PICKS</p><p className="mt-1 text-lg font-extrabold">Popular worldwide</p></div><span className="grid size-11 place-items-center rounded-2xl bg-teal-300/20 text-teal-200"><Store size={21} /></span></div>
               <div className="mt-5 space-y-3">

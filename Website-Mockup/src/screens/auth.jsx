@@ -58,6 +58,11 @@ export function Welcome() {
             <Globe size={13} />{lang === 'en' ? 'हिन्दी' : 'English'}
           </button>
         </div>
+        <div className="vv-root-hero-scene" aria-hidden="true">
+          <div className="vv-root-hero-orbit vv-root-hero-orbit-one" />
+          <div className="vv-root-hero-orbit vv-root-hero-orbit-two" />
+          <div className="vv-root-hero-cube"><span>V</span><span>RFQ</span><span>✓</span><span>GO</span><span>+</span><span>★</span></div>
+        </div>
         <div className="relative my-auto space-y-3.5 pb-6">
           {[[Truck, 'Order products', 'Track every status in real time'], [Sparkles, 'Book services', 'Pick a slot — no double booking'], [FileText, 'Compare quotes', 'RFQs from verified vendors']].map(([I, a, b], i) => (
             <div key={a} className="flex items-center gap-3 rounded-2xl bg-white/12 p-3.5 backdrop-blur" style={{ marginLeft: i * 14 }}>
@@ -83,7 +88,8 @@ export function Welcome() {
   )
 }
 
-const isPhone = (s) => /^[6-9]\d{9}$/.test(s)
+const normalizePhone = (value = '') => String(value).replace(/\D/g, '').slice(-10)
+const isPhone = (value) => normalizePhone(value).length === 10
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 const ACCESS_OTP = { customer: '111111', vendor: '222222', agent: '020905', admin: '261205' }
 const ADMIN_MFA = '261205'
@@ -96,10 +102,13 @@ export function Login({ params = {} }) {
   const [countryCode, setCountryCode] = useState('+91')
   const [err, setErr] = useState('')
   useEffect(() => setRole(params.role || 'customer'), [params.role])
-  const submit = () => {
-    const ok = method === 'phone' ? isPhone(val) : isEmail(val)
+  const submit = (event) => {
+    event?.preventDefault()
+    const phone = method === 'phone' ? normalizePhone(val) : val
+    if (method === 'phone' && phone !== val) setVal(phone)
+    const ok = method === 'phone' ? isPhone(phone) : isEmail(val)
     if (!ok) return setErr(method === 'phone' ? 'Enter a valid 10-digit mobile number' : 'Enter a valid email address')
-    nav.go('otp', { contact: method === 'phone' ? `${countryCode} ${val}` : val, role, method, next: params.next, nextParams: params.nextParams })
+    nav.go('otp', { contact: method === 'phone' ? `${countryCode} ${phone}` : val, role, method, next: params.next, nextParams: params.nextParams })
   }
   return (
     <Screen title="Log in" pad={false} bg="bg-white" scrollClass="vv-login-scroll">
@@ -114,7 +123,7 @@ export function Login({ params = {} }) {
           </div>
           <div className="vv-login-art-copy"><h2>Plan with confidence</h2><p>Compare proposals, confirm bookings and keep every detail in one place.</p></div>
         </aside>
-        <div className="vv-login-form p-5 sm:p-7">
+        <form className="vv-login-form p-5 sm:p-7" onSubmit={submit}>
           <div>
             <p className="vv-login-eyebrow">WELCOME BACK</p>
             <h2 className="text-2xl font-extrabold tracking-tight">Sign in</h2>
@@ -126,21 +135,21 @@ export function Login({ params = {} }) {
           ) : (
             <Input label="Email address" icon={Mail} type="email" placeholder="you@company.com" value={val} error={err} onChange={(e) => { setVal(e.target.value); setErr('') }} />
           )}
-          <Button full size="lg" onClick={submit}>Send OTP</Button>
+          <Button full size="lg" type="submit">Send OTP</Button>
 
           <div className="vv-login-roles rounded-2xl p-4 ring-1 ring-inset ring-ink-100">
             <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Choose your workspace</p>
             <div className="mt-2.5 grid grid-cols-2 gap-2">
               {ROLES.map((r) => (
-                <button key={r.id} onClick={() => setRole(r.id)} className={cx('rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition', role === r.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-ink-700 ring-ink-200')}>
+                <button type="button" key={r.id} onClick={() => setRole(r.id)} className={cx('rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition', role === r.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-ink-700 ring-ink-200')}>
                   {r.short}
                 </button>
               ))}
             </div>
             <p className="mt-2.5 text-xs text-ink-500">Sales Agents and Super Admins are invited by the platform — they cannot self-register.</p>
           </div>
-          <p className="text-center text-sm text-ink-500">New to VendorVerse? <button onClick={() => nav.replace('register')} className="font-bold text-brand-700">Create account</button></p>
-        </div>
+          <p className="text-center text-sm text-ink-500">New to VendorVerse? <button type="button" onClick={() => nav.replace('register')} className="font-bold text-brand-700">Create account</button></p>
+        </form>
       </div>
     </Screen>
   )
@@ -161,9 +170,9 @@ export function Otp({ params }) {
     return () => clearTimeout(t)
   }, [secs])
   const target = step === 0 ? (ACCESS_OTP[role] || ACCESS_OTP.customer) : ADMIN_MFA
-  const verify = () => {
-    if (code.length < 6) return setErr('Enter all 6 digits')
-    if (code !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
+  const verify = (candidate = code) => {
+    if (candidate.length < 6) return setErr('Enter all 6 digits')
+    if (candidate !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
     // The demo admin flow uses one OTP; do not request a second code.
     if (mode === 'register') {
       if (role === 'vendor') {
@@ -205,10 +214,10 @@ export function Otp({ params }) {
                 <div key={i} className={cx('grid h-14 flex-1 place-items-center rounded-xl text-xl font-extrabold ring-1 ring-inset', i === code.length ? 'ring-2 ring-brand-500' : err ? 'ring-red-300' : 'ring-ink-200', code[i] ? 'bg-brand-50' : 'bg-white')}>{code[i] || ''}</div>
               ))}
             </div>
-            <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setErr('') }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
+            <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { const nextCode = e.target.value.replace(/\D/g, '').slice(0, 6); setCode(nextCode); setErr(''); if (nextCode.length === 6) window.setTimeout(() => verify(nextCode), 0) }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
           </div>
           {err && <p className="text-sm font-medium text-red-600" role="alert">{err}</p>}
-          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role} OTP` : 'authenticator code'}. <button className="font-bold underline" onClick={() => { setCode(target); setErr('') }}>Auto-fill</button></Banner>
+          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role} OTP` : 'authenticator code'}. <button type="button" className="font-bold underline" onClick={() => { setCode(target); setErr(''); window.setTimeout(() => verify(target), 0) }}>Auto-fill</button></Banner>
           <Button full size="lg" onClick={verify}>{step === 0 && role === 'admin' ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
           {step === 0 && (
             <p className="text-center text-sm text-ink-500">
@@ -254,7 +263,7 @@ export function Register() {
         </div>
         <Input label="Full name" required placeholder="As per ID" value={f.name} onChange={set('name')} error={errs.name} />
         {role === 'vendor' && <Input label="Business name" required placeholder="Registered business name" value={f.biz} onChange={set('biz')} error={errs.biz} />}
-        <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(e.target.value.replace(/\D/g, ''))} error={errs.phone} className="!pl-10" />
+        <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(normalizePhone(e.target.value))} error={errs.phone} className="!pl-10" />
         <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
         <div>
           <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-brand-700">Terms of Service</b> and <b className="text-brand-700">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>

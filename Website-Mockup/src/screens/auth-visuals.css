@@ -73,6 +73,21 @@
 .vv-login-eyebrow { margin-bottom: 6px; }
 .vv-login-roles { background: linear-gradient(145deg, #f5fafb, #edf5f5); }
 
+/* Public root landing: keep the branded 3D motion here only. */
+.vv-root-hero-scene { position: relative; z-index: 1; display: grid; min-height: 190px; place-items: center; perspective: 900px; }
+.vv-root-hero-cube { position: relative; width: 92px; height: 92px; transform-style: preserve-3d; animation: vv-root-cube-spin 14s linear infinite; }
+.vv-root-hero-cube span { position: absolute; inset: 0; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); border-radius: 18px; background: linear-gradient(145deg, rgba(255,255,255,.95), rgba(207,239,234,.82)); color: #0b7180; font-size: 17px; font-weight: 900; box-shadow: 0 12px 28px rgba(0,0,0,.14); backface-visibility: hidden; }
+.vv-root-hero-cube span:nth-child(1) { transform: translateZ(46px); }
+.vv-root-hero-cube span:nth-child(2) { transform: rotateY(90deg) translateZ(46px); }
+.vv-root-hero-cube span:nth-child(3) { transform: rotateY(180deg) translateZ(46px); background: linear-gradient(145deg, #48ba8b, #168c76); color: #fff; }
+.vv-root-hero-cube span:nth-child(4) { transform: rotateY(-90deg) translateZ(46px); }
+.vv-root-hero-cube span:nth-child(5) { transform: rotateX(90deg) translateZ(46px); }
+.vv-root-hero-cube span:nth-child(6) { transform: rotateX(-90deg) translateZ(46px); }
+.vv-root-hero-orbit { position: absolute; width: 210px; height: 72px; border: 1px dashed rgba(255,255,255,.6); border-radius: 50%; transform: rotateX(68deg) rotateZ(-18deg); animation: vv-root-orbit 16s linear infinite; }
+.vv-root-hero-orbit-two { width: 250px; height: 90px; border-style: solid; border-color: rgba(167,239,218,.46); animation-duration: 23s; animation-direction: reverse; }
+@keyframes vv-root-cube-spin { from { transform: rotateX(-16deg) rotateY(0deg); } to { transform: rotateX(-16deg) rotateY(360deg); } }
+@keyframes vv-root-orbit { to { transform: rotateX(68deg) rotateZ(342deg); } }
+
 .vv-otp-stage {
   display: grid;
   min-height: 100%;
@@ -130,6 +145,7 @@
   .vv-login-art-copy p { font-size: 11px; }
   .vv-login-float { display: none; }
   .vv-login-form { gap: 16px; }
+  .vv-root-hero-scene { min-height: 140px; transform: scale(.78); }
 }
 
 @media (max-width: 380px) {
@@ -145,7 +161,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vv-login-layout, .vv-login-cube, .vv-login-orbit, .vv-login-float, .vv-otp-card, .vv-otp-mini-cube, .vv-otp-orbit, .vv-otp-float, .vv-otp-stage { animation: none !important; }
+  .vv-login-layout, .vv-login-cube, .vv-login-orbit, .vv-login-float, .vv-root-hero-cube, .vv-root-hero-orbit, .vv-otp-card, .vv-otp-mini-cube, .vv-otp-orbit, .vv-otp-float, .vv-otp-stage { animation: none !important; }
 }
 .vv-login-form [aria-label="Country calling code"] { border: 1px solid #d7e7e8; border-right: 1px solid #b7d3d5; border-radius: 12px 0 0 12px; background: #f7fbfb; box-sizing: border-box; }
 .vv-login-form [aria-label="Country calling code"]:focus { border-color: #008f88; outline: 2px solid rgba(0, 143, 136, .18); outline-offset: -2px; }

@@ -654,7 +654,9 @@ export function WriteReview({ params }) {
   const v = vendors.find((x) => x.id === params.vendorId) || vendors.find((x) => x.id === 'v-me')
   const eligibleBooking = bookings.some((b) => b.vendorId === v.id && b.customer === (me.name || ME_NAME) && ['completed', 'closed'].includes(b.status))
   const eligibleRfq = rfqs.some((r) => r.mine && r.status === 'accepted' && r.quotes.some((q) => q.vendorId === v.id && q.status === 'accepted'))
-  const eligible = eligibleBooking || eligibleRfq
+  // Reviews are independent of payment. Customers can share feedback after
+  // talking to a vendor, completing a booking, or accepting a quotation.
+  const eligible = Boolean(v) && (eligibleBooking || eligibleRfq || me?.role === 'customer')
   const done = reviewed.includes(v.id)
   const [rating, setRating] = useState(0)
   const [tags, setTags] = useState([])
@@ -672,7 +674,7 @@ export function WriteReview({ params }) {
   return (
     <Screen title="Rate this vendor" footer={eligible && !done ? <Button full size="lg" onClick={submit}>Submit review</Button> : null}>
       <Card className="!p-3.5"><div className="flex items-center gap-3"><Thumb tone={v.tone} icon={cat(v.cat).icon} size={52} round="rounded-xl" /><div><p className="text-sm font-bold">{v.name}</p><p className="text-xs text-ink-500">{cat(v.cat).name} · {v.city}</p></div></div></Card>
-      {!eligible && <Banner tone="amber" title="Review after a transaction">Reviews are available after a completed service booking or an accepted quotation.</Banner>}
+      {!eligible && <Banner tone="amber" title="Vendor unavailable">This vendor profile is not available for review.</Banner>}
       {done && <Banner tone="green" title="Already reviewed">Thank you — you have already reviewed this vendor.</Banner>}
       {eligible && !done && (
         <>

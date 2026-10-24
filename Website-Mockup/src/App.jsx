@@ -225,7 +225,7 @@ function WebHeader({ onMenu }) {
           <label className="hidden lg:block"><span className="sr-only">Currency</span><select value={locale.currency} onChange={(e) => setLocale({ ...locale, currency: e.target.value })} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="INR">INR</option><option value="AED">AED</option><option value="GBP">GBP</option><option value="USD">USD</option></select></label>
           <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
           <button onClick={() => nav.go('notifications')} className="relative grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50" aria-label="Notifications"><Bell size={19} /></button>
-          {me.guest && <button onClick={() => nav.go('login')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Sign in</button>}
+          {!me.loggedIn && <button onClick={() => nav.go('login')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Sign in</button>}
         </div>
       </div>
       <div className="sr-only" aria-live="polite">{screen.title}</div>
@@ -339,7 +339,7 @@ function Shell() {
 function Root() {
   const { me } = useApp()
   return (
-    <NavProvider fallbackHome={() => HOME[me.role] || 'welcome'}>
+    <NavProvider fallbackHome={() => HOME[me.role] || 'c_home'}>
       <Shell />
     </NavProvider>
   )
