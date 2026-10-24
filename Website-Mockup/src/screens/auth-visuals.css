@@ -99,7 +99,7 @@
 .vv-otp-copy > p:last-child { overflow-wrap: anywhere; line-height: 1.6; }
 .vv-otp-entry { width: 100%; }
 .vv-otp-entry > div { gap: clamp(5px, 1.2vw, 10px); }
-.vv-otp-entry > div > div { min-width: 0; height: 62px; border-radius: 14px; color: #0b7180; background-color: #fff; box-shadow: 0 2px 7px rgba(20, 57, 69, .04); }
+.vv-otp-entry > div > div { min-width: 0; height: 62px; border-radius: 14px; color: #006f78; background-color: #f7fbfb; border: 2px solid #d7e7e8; box-shadow: 0 3px 10px rgba(20, 57, 69, .08); font-size: 1.35rem; }
 .vv-otp-scene { position: relative; display: grid; width: 132px; height: 104px; place-items: center; perspective: 700px; }
 .vv-otp-mini-cube { position: relative; z-index: 1; width: 46px; height: 46px; perspective: 300px; transform-style: preserve-3d; animation: vv-otp-cube-turn 12s linear infinite; }
 .vv-otp-mini-cube span { position: absolute; inset: 0; display: grid; place-items: center; border: 1px solid #b9dedb; border-radius: 10px; background: linear-gradient(145deg, #fff, #dff2f0); color: #0b7180; font-size: 14px; font-weight: 900; box-shadow: 0 5px 14px rgba(15, 92, 99, .12); backface-visibility: hidden; }
@@ -147,3 +147,7 @@
 @media (prefers-reduced-motion: reduce) {
   .vv-login-layout, .vv-login-cube, .vv-login-orbit, .vv-login-float, .vv-otp-card, .vv-otp-mini-cube, .vv-otp-orbit, .vv-otp-float, .vv-otp-stage { animation: none !important; }
 }
+.vv-login-form [aria-label="Country calling code"] { border: 1px solid #d7e7e8; border-right: 1px solid #b7d3d5; border-radius: 12px 0 0 12px; background: #f7fbfb; box-sizing: border-box; }
+.vv-login-form [aria-label="Country calling code"]:focus { border-color: #008f88; outline: 2px solid rgba(0, 143, 136, .18); outline-offset: -2px; }
+.vv-login-form [aria-label="Country calling code"] + div { border: 1px solid #d7e7e8; border-left: 0; border-radius: 0 12px 12px 0; box-sizing: border-box; }
+.vv-login-form [aria-label="Country calling code"]:focus + div { border-color: #008f88; }

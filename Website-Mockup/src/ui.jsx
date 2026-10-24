@@ -94,6 +94,7 @@ export function Button({ variant = 'primary', size = 'md', icon: Icon, full, chi
   return (
     <button
       {...p}
+      type={p.type || 'button'}
       className={cx('inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-xl font-semibold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45', sz, BTN[variant], full && 'w-full', className)}
     >
       {Icon && <Icon size={size === 'sm' ? 15 : 17} />}

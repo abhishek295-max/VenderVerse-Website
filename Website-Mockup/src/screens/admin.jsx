@@ -52,6 +52,19 @@ export function AdminDashboard() {
   )
 }
 
+export function AdminSettings() {
+  const { settings, setSettings, addAudit, toast } = useApp()
+  const [draft, setDraft] = useState({ ...settings, coupons: settings.coupons || [] })
+  const updatePlan = (id, field, value) => setDraft({ ...draft, plans: draft.plans.map((p) => p.id === id ? { ...p, [field]: field === 'price' ? Number(value.replace(/\D/g, '')) : value } : p) })
+  const updateCoupon = (id, field, value) => setDraft({ ...draft, coupons: draft.coupons.map((c) => c.id === id ? { ...c, [field]: field === 'value' ? Number(value.replace(/\D/g, '')) : value } : c) })
+  const save = () => { setSettings(draft); addAudit('Updated vendor subscription plans and coupons', 'Commercial settings', 'setting'); toast('Plans and coupons saved') }
+  return <Screen title="Platform settings" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
+    <Banner tone="blue">Manage subscription pricing and discount coupons. Changes apply to new vendor purchases in this browser demo.</Banner>
+    <Section title="Subscription plans"><div className="space-y-3">{draft.plans.map((p) => <Card key={p.id}><div className="grid gap-3 sm:grid-cols-3"><Input label="Plan name" value={p.name} onChange={(e) => updatePlan(p.id, 'name', e.target.value)} /><Input label="Monthly price" inputMode="numeric" value={String(p.price)} onChange={(e) => updatePlan(p.id, 'price', e.target.value)} /><Input label="Listings limit" value={String(p.listings)} onChange={(e) => updatePlan(p.id, 'listings', e.target.value)} /></div><div className="mt-3 flex justify-between"><Toggle label="Active" on={p.active} onChange={(v) => setDraft({ ...draft, plans: draft.plans.map((x) => x.id === p.id ? { ...x, active: v } : x) })} /><Button variant="dangerSoft" size="sm" onClick={() => setDraft({ ...draft, plans: draft.plans.filter((x) => x.id !== p.id) })}><Trash2 size={14} /> Delete</Button></div></Card>)}<Button variant="secondary" onClick={() => setDraft({ ...draft, plans: [...draft.plans, { id: `p-${Date.now()}`, name: 'New plan', price: 0, listings: 10, leads: 30, active: true }] })}><Plus size={16} /> Add plan</Button></div></Section>
+    <Section title="Subscription coupons"><div className="space-y-3">{draft.coupons.map((c) => <Card key={c.id}><div className="grid gap-3 sm:grid-cols-3"><Input label="Coupon code" value={c.code} onChange={(e) => updateCoupon(c.id, 'code', e.target.value.toUpperCase())} /><Select label="Discount type" value={c.type} onChange={(e) => updateCoupon(c.id, 'type', e.target.value)} options={[{ value: 'percent', label: 'Percentage' }, { value: 'flat', label: 'Flat amount' }]} /><Input label="Discount value" inputMode="numeric" value={String(c.value)} onChange={(e) => updateCoupon(c.id, 'value', e.target.value)} /></div><div className="mt-3 flex justify-between"><Toggle label="Active" on={c.active} onChange={(v) => updateCoupon(c.id, 'active', v)} /><Button variant="dangerSoft" size="sm" onClick={() => setDraft({ ...draft, coupons: draft.coupons.filter((x) => x.id !== c.id) })}><Trash2 size={14} /> Delete</Button></div></Card>)}<Button variant="secondary" onClick={() => setDraft({ ...draft, coupons: [...draft.coupons, { id: `cp-${Date.now()}`, code: 'NEWCODE', type: 'percent', value: 10, active: true }] })}><Plus size={16} /> Add coupon</Button></div></Section>
+  </Screen>
+}
+
 export function Approvals() {
   const nav = useNav()
   const { vendors, listings, disputes, commissions } = useApp()
@@ -498,9 +511,10 @@ export function AdminDispute({ params }) {
 }
 
 /* ================= COMMERCIAL SETTINGS ================= */
-export function AdminSettings() {
+function LegacyAdminSettings() {
   const { settings, setSettings, addAudit, toast } = useApp()
   const [d, setD] = useState(settings)
+  const coupons = d.coupons || []
   const dirty = JSON.stringify(d) !== JSON.stringify(settings)
   const save = () => {
     if (d.agentCommission.amount !== settings.agentCommission.amount) addAudit(`Changed agent commission ₹${settings.agentCommission.amount} → ₹${d.agentCommission.amount}`, 'Commercial settings', 'setting')

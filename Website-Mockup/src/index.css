@@ -40,3 +40,19 @@ input, select, textarea { font-family: inherit; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .thin-scroll { scrollbar-width: thin; scrollbar-color: var(--color-ink-200) transparent; }
 input[type="date"], input[type="time"] { min-height: 1.5rem; }
+.vv-explore-card-grid > * { min-width: 0; }
+.vv-explore-card-grid .vv-card { min-width: 0; overflow: hidden; }
+.vv-explore-card-grid > * { height: 100%; }
+.listing-card-body, .vendor-card-body { min-width: 0; overflow: hidden; }
+.listing-card-body > div:last-child { min-width: 0; flex: 1 1 auto; }
+.listing-card-body p, .vendor-card-body p { min-width: 0; overflow: hidden; }
+.listing-card-body .text-base, .listing-card-body .text-xs { white-space: nowrap; }
+.listing-card-body .text-base { overflow: hidden; text-overflow: ellipsis; }
+.listing-card-body > div:last-child > div { min-width: 0; flex-wrap: wrap; row-gap: .4rem; }
+.vendor-card-body { align-items: flex-start; }
+.vendor-card-body > div:last-child { min-width: 0; flex: 1 1 auto; padding-top: .1rem; }
+.vendor-card-body > div:last-child > div { min-width: 0; flex-wrap: wrap; row-gap: .35rem; }
+.vv-market-vendors .group { min-width: 0; overflow: hidden; }
+.vv-market-vendors .group > div:last-child { min-width: 0; min-height: 190px; padding: 1.25rem 1rem 1rem; }
+.vv-market-vendors .group h3 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vv-market-vendors .group p { min-width: 0; overflow-wrap: anywhere; }

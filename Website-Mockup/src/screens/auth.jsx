@@ -93,12 +93,13 @@ export function Login({ params = {} }) {
   const [method, setMethod] = useState('phone')
   const [role, setRole] = useState(params.role || 'customer')
   const [val, setVal] = useState('')
+  const [countryCode, setCountryCode] = useState('+91')
   const [err, setErr] = useState('')
   useEffect(() => setRole(params.role || 'customer'), [params.role])
   const submit = () => {
     const ok = method === 'phone' ? isPhone(val) : isEmail(val)
     if (!ok) return setErr(method === 'phone' ? 'Enter a valid 10-digit mobile number' : 'Enter a valid email address')
-    nav.go('otp', { contact: method === 'phone' ? `+91 ${val}` : val, role, method, next: params.next, nextParams: params.nextParams })
+    nav.go('otp', { contact: method === 'phone' ? `${countryCode} ${val}` : val, role, method, next: params.next, nextParams: params.nextParams })
   }
   return (
     <Screen title="Log in" pad={false} bg="bg-white" scrollClass="vv-login-scroll">
@@ -121,7 +122,7 @@ export function Login({ params = {} }) {
           </div>
           <Segmented value={method} onChange={(m) => { setMethod(m); setVal(''); setErr('') }} options={[{ id: 'phone', label: 'Phone' }, { id: 'email', label: 'Email' }]} />
           {method === 'phone' ? (
-            <Input label="Mobile number" icon={Phone} prefix="" inputMode="numeric" maxLength={10} placeholder="98290 00001" value={val} error={err} onChange={(e) => { setVal(e.target.value.replace(/\D/g, '')); setErr('') }} className="!pl-10" hint="Standard SMS rates may apply" />
+            <div><label className="mb-1.5 block text-[13px] font-semibold text-ink-700">Mobile number</label><div className="flex h-12 overflow-hidden rounded-xl bg-white ring-1 ring-inset ring-ink-200 focus-within:ring-2 focus-within:ring-brand-500"><select aria-label="Country calling code" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="w-[92px] shrink-0 border-r border-ink-200 bg-ink-50 px-2 text-sm font-bold text-ink-700 outline-none"><option value="+91">🇮🇳 +91</option><option value="+1">🇺🇸 +1</option><option value="+44">🇬🇧 +44</option><option value="+971">🇦🇪 +971</option><option value="+81">🇯🇵 +81</option><option value="+46">🇸🇪 +46</option></select><div className="relative flex min-w-0 flex-1 items-center"><Phone size={17} className="pointer-events-none absolute left-3 text-ink-400" /><input inputMode="numeric" maxLength={10} placeholder="98290 00001" value={val} onChange={(e) => { setVal(e.target.value.replace(/\D/g, '')); setErr('') }} className="h-full min-w-0 flex-1 bg-transparent pl-10 pr-3 text-sm outline-none" /></div></div>{err && <p className="mt-1.5 text-xs font-medium text-red-600">{err}</p>}<p className="mt-1.5 text-xs text-ink-500">Standard SMS rates may apply</p></div>
           ) : (
             <Input label="Email address" icon={Mail} type="email" placeholder="you@company.com" value={val} error={err} onChange={(e) => { setVal(e.target.value); setErr('') }} />
           )}
@@ -163,7 +164,7 @@ export function Otp({ params }) {
   const verify = () => {
     if (code.length < 6) return setErr('Enter all 6 digits')
     if (code !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
-    if (step === 0 && role === 'admin') { setStep(1); setCode(''); setErr(''); return }
+    // The demo admin flow uses one OTP; do not request a second code.
     if (mode === 'register') {
       if (role === 'vendor') {
         setMe({ role: 'vendor', loggedIn: true, guest: false, vendorId: 'v-new', name: name || 'New Vendor', biz, isNew: true })

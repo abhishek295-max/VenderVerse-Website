@@ -1,7 +1,7 @@
 import { Bell, Heart, MapPin, ShieldCheck, ShieldAlert, Package, CalendarDays, Clock } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
-import { Thumb, Rating, Badge, StatusBadge, IconBtn, Card, cx, fmt, Pill } from '../ui.jsx'
+import { Thumb, Rating, Badge, StatusBadge, IconBtn, Card, Avatar, cx, fmt, Pill } from '../ui.jsx'
 import { cat } from '../data.jsx'
 
 export function useGate() {
@@ -57,6 +57,7 @@ export function NotifBell({ role }) {
 }
 
 export const listingDisc = (l) => (l.mrp ? Math.round((1 - l.price / l.mrp) * 100) : 0)
+const listingCover = (l) => l.cover || ({ elec: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80', build: 'https://images.unsplash.com/photo-1503387762-592­de9c5b7c4?auto=format&fit=crop&w=900&q=80', office: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80', print: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=900&q=80', home: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=900&q=80', clean: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80', event: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=80' }[l.cat] || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80')
 
 export function ListingCard({ l, onClick, showVendor = true }) {
   const { vendor, saved, toggleSaved, toast } = useApp()
@@ -66,9 +67,10 @@ export function ListingCard({ l, onClick, showVendor = true }) {
   const isSaved = saved.includes(l.id)
   const out = l.type === 'product' && l.stock === 0
   return (
-    <Card onClick={onClick || (() => nav.go('c_listing', { id: l.id }))} className="!p-3">
-      <div className="flex gap-3">
-        <Thumb tone={l.tone} icon={c.icon} size={84} round="rounded-xl" />
+    <Card onClick={onClick || (() => nav.go('c_listing', { id: l.id }))} className="!p-0 min-w-0 overflow-hidden">
+      <div className="h-32 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(8,45,55,.42), rgba(8,45,55,.04)), url(${listingCover(l)})` }} />
+      <div className="listing-card-body flex min-w-0 gap-3 p-4">
+        <div className="mt-0 grid size-16 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Thumb tone={l.tone} icon={c.icon} size={54} round="rounded-xl" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1">
             <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug text-ink-900">{l.title}</p>
@@ -105,10 +107,12 @@ export function ListingCard({ l, onClick, showVendor = true }) {
 export function VendorRow({ v, onClick }) {
   const nav = useNav()
   const c = cat(v.cat)
+  const cover = v.cover || ({ elec: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80', build: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80', office: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80', clean: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80', home: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=900&q=80', event: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=80' }[v.cat] || 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80')
   return (
-    <Card onClick={onClick || (() => nav.go('c_vendor', { id: v.id }))} className="!p-3">
-      <div className="flex items-center gap-3">
-        <Thumb tone={v.tone} icon={c.icon} size={56} />
+    <Card onClick={onClick || (() => nav.go('c_vendor', { id: v.id }))} className="!p-0 min-w-0 overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="h-28 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(8,45,55,.45), rgba(8,45,55,.05)), url(${cover})` }} />
+      <div className="vendor-card-body flex min-w-0 items-center gap-3 p-4">
+        <div className="mt-0 grid size-14 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Avatar name={v.name} size={42} /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-bold">{v.name}</p>

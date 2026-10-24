@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'vendorverse.website.state.v1'
+const STORAGE_KEY = 'vendorverse.website.state.v2'
 
 const clone = (value) => JSON.parse(JSON.stringify(value))
 
