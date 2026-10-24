@@ -155,7 +155,7 @@
 .vv-market-categories > div:last-child > button:hover { transform: translateY(-5px); }
 .vv-market-categories > div:last-child > button > div { box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: box-shadow .3s, transform .3s; }
 .vv-market-categories > div:last-child > button:hover > div { box-shadow: 0 10px 18px rgba(15,92,99,.22); }
-.vv-market-vendors > div:last-child { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+.vv-market-vendors > div:last-child { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 .vv-market-vendors > div:last-child > button { border-color: var(--vh-line); box-shadow: 0 2px 10px rgba(0,0,0,.05); animation: vv-fade-up .5s both; transition: transform .3s, box-shadow .3s; }
 .vv-market-vendors > div:last-child > button:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(15,92,99,.17); }
 .vv-market-content > section:nth-of-type(4) article { border-color: var(--vh-line); box-shadow: 0 2px 10px rgba(0,0,0,.05); transition: transform .3s, box-shadow .3s; }
