@@ -6,7 +6,7 @@ import {
 import { useNav } from './nav.jsx'
 
 export const cx = (...a) => a.filter(Boolean).join(' ')
-export const fmt = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN')
+export const fmt = (n, currency = 'INR') => new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(Math.round(Number(n) || 0))
 
 /* ---------- colour tones ---------- */
 export const GRAD = {

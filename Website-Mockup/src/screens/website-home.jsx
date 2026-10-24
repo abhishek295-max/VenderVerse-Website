@@ -39,7 +39,7 @@ function HeroMotion() {
 
 export function WebsiteHome() {
   const nav = useNav()
-  const { me, listings, vendors, saved, toggleSaved } = useApp()
+  const { me, listings, vendors, saved, toggleSaved, locale } = useApp()
   const [query, setQuery] = useState('')
   const featured = vendors.filter((v) => v.status === 'approved').sort((a, b) => b.rating - a.rating).slice(0, 4)
   const popular = useMemo(() => listings.filter((l) => l.status === 'approved').sort((a, b) => b.reviews - a.reviews).slice(0, 4), [listings])
@@ -56,7 +56,7 @@ export function WebsiteHome() {
         <div className="absolute -bottom-40 left-[35%] size-[26rem] rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="vv-market-hero-inner relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 py-14 sm:px-10 lg:px-16">
           <div className="max-w-2xl">
-            <span className="vv-hero-tag"><Sparkles size={14} /> India’s trusted local marketplace</span>
+            <span className="vv-hero-tag"><Sparkles size={14} /> A trusted global marketplace</span>
             <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-[58px]">Find the right vendor. <span className="text-teal-300">Get work moving.</span></h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">Discover verified suppliers and service professionals, compare quotations, and talk directly to the people who can help.</p>
             <form onSubmit={search} className="vv-market-search mt-8 flex max-w-2xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl shadow-black/20 sm:flex-row">
@@ -69,7 +69,7 @@ export function WebsiteHome() {
             <HeroMotion />
             <div className="absolute inset-7 rounded-[2.5rem] bg-gradient-to-br from-teal-300/30 via-brand-500/20 to-indigo-400/20 blur-2xl" />
             <div className="vv-hero-feature-panel absolute right-10 top-8 w-[min(100%,440px)] rotate-2 rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl">
-              <div className="flex items-center justify-between"><div><p className="text-xs font-semibold text-teal-100">LOCAL PICKS</p><p className="mt-1 text-lg font-extrabold">Popular in Jaipur</p></div><span className="grid size-11 place-items-center rounded-2xl bg-teal-300/20 text-teal-200"><Store size={21} /></span></div>
+              <div className="flex items-center justify-between"><div><p className="text-xs font-semibold text-teal-100">GLOBAL PICKS</p><p className="mt-1 text-lg font-extrabold">Popular worldwide</p></div><span className="grid size-11 place-items-center rounded-2xl bg-teal-300/20 text-teal-200"><Store size={21} /></span></div>
               <div className="mt-5 space-y-3">
                 {popular.slice(0, 3).map((l) => { const vendor = vendors.find((v) => v.id === l.vendorId); return <button key={l.id} onClick={() => nav.go('c_listing', { id: l.id })} className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-3 text-left transition hover:bg-white/15"><Thumb tone={l.tone} icon={cat(l.cat).icon} size={52} round="rounded-xl" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{l.title}</span><span className="mt-1 flex items-center gap-1 text-xs text-white/65">{vendor?.name || 'Verified vendor'} <BadgeCheck size={13} className="text-teal-300" /></span></span><span className="text-sm font-extrabold">{fmt(l.price)}</span></button> })}
               </div>
