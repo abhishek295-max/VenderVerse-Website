@@ -309,6 +309,7 @@ function Shell() {
   const jump = (id) => {
     const reg = SCREENS[id]
     if (reg.role === 'auth') { nav.reset(id, reg.defaultParams || {}); return }
+    if (id === 'c_home') { nav.reset('c_home', reg.defaultParams || {}); return }
     const role = reg.role === 'shared' ? (me.role || 'customer') : reg.role
     const canOpen = (role === 'customer' && me.role === 'customer') || canOpenRoute(me, role)
     if (!canOpen) { nav.reset('login', { role, next: id, nextParams: reg.defaultParams || {} }); return }

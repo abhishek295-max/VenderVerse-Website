@@ -288,6 +288,21 @@
 }
 .vv-c-home .vv-market-categories > div:first-child::after { content: 'CATALOG'; }
 .vv-c-home .vv-market-vendors > div:first-child::after { content: 'SUPPLIER NETWORK'; }
+.vv-c-home .vv-market-vendors > div:first-child::after { display: none; }
+.vv-c-home .vv-market-vendors > div:first-child {
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+.vv-c-home .vv-market-vendors > div:first-child > div:first-child { min-width: 0; }
+.vv-c-home .vv-market-vendors > div:first-child > button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin-left: auto;
+  white-space: nowrap;
+}
 .vv-c-home .vv-market-content > section:nth-of-type(4) > div:first-child::after { content: 'LIVE INVENTORY'; }
 .vv-c-home .vv-market-categories > div:last-child > button {
   border-color: var(--ref-line);
@@ -379,6 +394,8 @@
 }
 @media (max-width: 700px) {
   .vv-c-home .vv-market-content section > div:first-child::after { display: none; }
+  .vv-c-home .vv-market-vendors > div:first-child { align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+  .vv-c-home .vv-market-vendors > div:first-child > button { margin-left: 0; }
   .vv-c-home .vv-market-content > section:nth-of-type(4) > div:last-child { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
