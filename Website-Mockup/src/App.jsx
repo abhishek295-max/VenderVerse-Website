@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react'
 import { AppProvider, useApp } from './store.jsx'
+import { canOpenRoute } from './services/authorization.js'
 import { NavProvider, useNav } from './nav.jsx'
 import { HOME, TABS, ROLES } from './roles.js'
 import { SCREENS, GROUPS } from './registry.jsx'
@@ -207,7 +208,7 @@ function SpecPanel() {
 
 function WebHeader({ onMenu }) {
   const nav = useNav()
-  const { lang, setLang, me, t } = useApp()
+  const { lang, setLang, locale, setLocale, me, t } = useApp()
   const screen = SCREENS[nav.id] || SCREENS.welcome
   const tabs = TABS[me.role || 'customer'] || TABS.customer
   const activeTab = nav.stack.slice().reverse().map((entry) => tabs.find((tab) => tab.id === entry.id)).find(Boolean)?.id || nav.id
@@ -220,6 +221,8 @@ function WebHeader({ onMenu }) {
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>
+          <label className="hidden sm:block"><span className="sr-only">Country or region</span><select value={locale.country} onChange={(e) => setLocale({ ...locale, country: e.target.value })} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="IN">India</option><option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="US">United States</option></select></label>
+          <label className="hidden lg:block"><span className="sr-only">Currency</span><select value={locale.currency} onChange={(e) => setLocale({ ...locale, currency: e.target.value })} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="INR">INR</option><option value="AED">AED</option><option value="GBP">GBP</option><option value="USD">USD</option></select></label>
           <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
           <button onClick={() => nav.go('notifications')} className="relative grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50" aria-label="Notifications"><Bell size={19} /></button>
           {me.guest && <button onClick={() => nav.go('login')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Sign in</button>}
@@ -305,11 +308,11 @@ function Shell() {
 
   const jump = (id) => {
     const reg = SCREENS[id]
-    if (reg.role === 'auth') { nav.reset(id, reg.demo || {}); return }
+    if (reg.role === 'auth') { nav.reset(id, reg.defaultParams || {}); return }
     const role = reg.role === 'shared' ? (me.role || 'customer') : reg.role
-    const canOpen = (role === 'customer' && me.role === 'customer') || (me.loggedIn && me.role === role)
-    if (!canOpen) { nav.reset('login', { role, next: id, nextParams: reg.demo || {} }); return }
-    nav.reset(id, reg.demo || {})
+    const canOpen = (role === 'customer' && me.role === 'customer') || canOpenRoute(me, role)
+    if (!canOpen) { nav.reset('login', { role, next: id, nextParams: reg.defaultParams || {} }); return }
+    nav.reset(id, reg.defaultParams || {})
   }
 
   // deep links: /#/c_home opens that screen; the hash follows navigation

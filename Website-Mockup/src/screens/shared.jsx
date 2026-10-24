@@ -172,7 +172,7 @@ export function BookingCard({ b, onClick, role = 'customer' }) {
   )
 }
 
-/* fixed 'today' for the mock so dates are deterministic */
+/* Fixed reference day keeps seeded booking labels deterministic. */
 export const TODAY = new Date(2026, 9, 19)
 const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const D = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']

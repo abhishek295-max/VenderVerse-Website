@@ -339,7 +339,7 @@ export function AdminAgent({ params }) {
       <Card><KV rows={[['Vendors onboarded', a.vendors], ['Customers registered', a.customers], ['Commission earned', fmt(a.commission)], ['Rule', `${fmt(settings.agentCommission.amount)} per activated vendor`]]} /></Card>
       <Banner tone="amber" title="Anti-fraud rule">Agents cannot approve vendors they onboarded. Commission needs admin approval after attribution is verified.</Banner>
       <Section title="Commission approvals">
-        {a.name !== 'Neha Verma' ? <Card className="text-center text-sm text-ink-500">No commission items in this demo for this agent.</Card> : (
+        {a.name !== 'Neha Verma' ? <Card className="text-center text-sm text-ink-500">No commission items are recorded for this agent.</Card> : (
           <div className="space-y-2.5">{commissions.map((c) => (
             <Card key={c.id} className="!p-3.5"><div className="flex items-center justify-between"><div><p className="text-sm font-bold">{c.lead}</p><p className="text-xs text-ink-500">{c.kind} · {c.date}</p></div><div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={{ pending: 'amber', awaiting: 'gray', approved: 'blue', paid: 'green', rejected: 'red' }[c.status]}>{{ pending: 'Pending', awaiting: 'Vendor not approved', approved: 'Approved', paid: 'Paid', rejected: 'Rejected' }[c.status]}</Badge></div></div>
               {c.status === 'pending' && <div className="mt-3 flex gap-2"><Button size="sm" variant="dangerSoft" className="flex-1" onClick={() => act(c, 'rejected')}>Reject</Button><Button size="sm" className="flex-1" onClick={() => act(c, 'approved')}>Approve</Button></div>}

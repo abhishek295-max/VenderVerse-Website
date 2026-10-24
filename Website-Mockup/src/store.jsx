@@ -1,8 +1,10 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
   VENDORS0, LISTINGS0, ORDERS0, BOOKINGS0, RFQS0, LEADS0, COMMISSIONS0, DISPUTES0, USERS0, AGENTS0, AUDIT0,
   NOTIFS0, THREADS0, SETTINGS0, REVIEWS0, ME,
 } from './data.jsx'
+import { clearState, loadState, saveState } from './services/browserRepository.js'
+import { can, ownsCustomerRecord, ownsVendor } from './services/authorization.js'
 
 const Ctx = createContext(null)
 export const useApp = () => useContext(Ctx)
@@ -42,28 +44,41 @@ const DICT = {
 }
 
 export function AppProvider({ children, initialMe }) {
-  const [me, setMe] = useState(initialMe || { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' })
-  const [lang, setLang] = useState('en')
-  const [vendors, setVendors] = useState(VENDORS0)
-  const [listings, setListings] = useState(LISTINGS0)
-  const [orders, setOrders] = useState(ORDERS0)
-  const [bookings, setBookings] = useState(BOOKINGS0)
-  const [rfqs, setRfqs] = useState(RFQS0)
-  const [leads, setLeads] = useState(LEADS0)
-  const [commissions, setCommissions] = useState(COMMISSIONS0)
-  const [disputes, setDisputes] = useState(DISPUTES0)
-  const [users, setUsers] = useState(USERS0)
-  const [agents, setAgents] = useState(AGENTS0)
-  const [audit, setAudit] = useState(AUDIT0)
-  const [notifs, setNotifs] = useState(NOTIFS0)
-  const [threads, setThreads] = useState(THREADS0)
-  const [settings, setSettings] = useState(SETTINGS0)
-  const [reviews, setReviews] = useState(REVIEWS0)
-  const [saved, setSaved] = useState(['l3', 'l11', 'v7'])
-  const [compare, setCompare] = useState([])
+  const seed = useMemo(() => ({
+    me: { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest', accountState: 'active' },
+    lang: 'en', locale: { country: 'IN', currency: 'INR', timeZone: 'Asia/Kolkata' }, vendors: VENDORS0, listings: LISTINGS0, orders: ORDERS0,
+    bookings: BOOKINGS0, rfqs: RFQS0, leads: LEADS0, commissions: COMMISSIONS0, disputes: DISPUTES0, users: USERS0, agents: AGENTS0,
+    audit: AUDIT0, notifs: NOTIFS0, threads: THREADS0, settings: SETTINGS0, reviews: REVIEWS0, saved: ['l3', 'l11', 'v7'], compare: [],
+    reviewed: [], prefs: { orders: true, bookings: true, quotes: true, promos: false, quiet: false },
+  }), [])
+  const restored = useMemo(() => loadState(seed), [seed])
+  const [me, setMe] = useState(initialMe || restored.me)
+  const [lang, setLang] = useState(restored.lang)
+  const [locale, setLocale] = useState(restored.locale)
+  const [vendors, setVendors] = useState(restored.vendors)
+  const [listings, setListings] = useState(restored.listings)
+  const [orders, setOrders] = useState(restored.orders)
+  const [bookings, setBookings] = useState(restored.bookings)
+  const [rfqs, setRfqs] = useState(restored.rfqs)
+  const [leads, setLeads] = useState(restored.leads)
+  const [commissions, setCommissions] = useState(restored.commissions)
+  const [disputes, setDisputes] = useState(restored.disputes)
+  const [users, setUsers] = useState(restored.users)
+  const [agents, setAgents] = useState(restored.agents)
+  const [audit, setAudit] = useState(restored.audit)
+  const [notifs, setNotifs] = useState(restored.notifs)
+  const [threads, setThreads] = useState(restored.threads)
+  const [settings, setSettings] = useState(restored.settings)
+  const [reviews, setReviews] = useState(restored.reviews)
+  const [saved, setSaved] = useState(restored.saved)
+  const [compare, setCompare] = useState(restored.compare)
   const [toastMsg, setToast] = useState(null)
-  const [reviewed, setReviewed] = useState([])
-  const [prefs, setPrefs] = useState({ orders: true, bookings: true, quotes: true, promos: false, quiet: false })
+  const [reviewed, setReviewed] = useState(restored.reviewed)
+  const [prefs, setPrefs] = useState(restored.prefs)
+
+  useEffect(() => {
+    saveState({ me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs })
+  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs])
 
   const toast = useCallback((msg, tone = 'ok') => {
     const id = Date.now()
@@ -84,7 +99,7 @@ export function AppProvider({ children, initialMe }) {
     const vendor = (id) => vendors.find((v) => v.id === id)
     const isVerified = (id) => vendor(id)?.status === 'approved'
     return {
-      me, setMe, lang, setLang, t, toast, toastMsg, addAudit, notify,
+      me, setMe, lang, setLang, locale, setLocale, t, toast, toastMsg, addAudit, notify,
       vendors, setVendors, vendor, isVerified, patchVendor: patch(setVendors),
       listings, setListings, patchListing: patch(setListings),
       orders, setOrders, patchOrder: patch(setOrders),
@@ -100,9 +115,13 @@ export function AppProvider({ children, initialMe }) {
       saved, setSaved, compare, setCompare, prefs, setPrefs,
       toggleSaved: (id) => setSaved((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])),
       toggleCompare: (id) => setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? c : [...c, id])),
+      can: (permission) => can(me, permission),
+      ownsVendor: (vendorId) => ownsVendor(me, vendorId),
+      ownsCustomerRecord: (record) => ownsCustomerRecord(me, record),
+      resetWorkspace: () => { clearState(); window.location.reload() },
       stamp,
     }
-  }, [me, lang, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, reviewed, saved, compare, toastMsg, prefs, toast, addAudit, notify, patch])
+  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, reviewed, saved, compare, toastMsg, prefs, toast, addAudit, notify, patch])
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }

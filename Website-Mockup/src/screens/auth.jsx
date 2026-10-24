@@ -85,8 +85,8 @@ export function Welcome() {
 
 const isPhone = (s) => /^[6-9]\d{9}$/.test(s)
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-const DEMO_OTP = { customer: '111111', vendor: '222222', agent: '020905', admin: '261205' }
-const DEMO_ADMIN_MFA = '261205'
+const ACCESS_OTP = { customer: '111111', vendor: '222222', agent: '020905', admin: '261205' }
+const ADMIN_MFA = '261205'
 
 export function Login({ params = {} }) {
   const nav = useNav()
@@ -128,7 +128,7 @@ export function Login({ params = {} }) {
           <Button full size="lg" onClick={submit}>Send OTP</Button>
 
           <div className="vv-login-roles rounded-2xl p-4 ring-1 ring-inset ring-ink-100">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Demo — sign in as</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Choose your workspace</p>
             <div className="mt-2.5 grid grid-cols-2 gap-2">
               {ROLES.map((r) => (
                 <button key={r.id} onClick={() => setRole(r.id)} className={cx('rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition', role === r.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-ink-700 ring-ink-200')}>
@@ -159,7 +159,7 @@ export function Otp({ params }) {
     const t = setTimeout(() => setSecs((s) => s - 1), 1000)
     return () => clearTimeout(t)
   }, [secs])
-  const target = step === 0 ? (DEMO_OTP[role] || DEMO_OTP.customer) : DEMO_ADMIN_MFA
+  const target = step === 0 ? (ACCESS_OTP[role] || ACCESS_OTP.customer) : ADMIN_MFA
   const verify = () => {
     if (code.length < 6) return setErr('Enter all 6 digits')
     if (code !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
@@ -207,7 +207,7 @@ export function Otp({ params }) {
             <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setErr('') }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
           </div>
           {err && <p className="text-sm font-medium text-red-600" role="alert">{err}</p>}
-          <Banner tone="blue" title="Demo mode">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role} OTP` : 'authenticator code'}. <button className="font-bold underline" onClick={() => { setCode(target); setErr('') }}>Auto-fill</button></Banner>
+          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role} OTP` : 'authenticator code'}. <button className="font-bold underline" onClick={() => { setCode(target); setErr('') }}>Auto-fill</button></Banner>
           <Button full size="lg" onClick={verify}>{step === 0 && role === 'admin' ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
           {step === 0 && (
             <p className="text-center text-sm text-ink-500">
