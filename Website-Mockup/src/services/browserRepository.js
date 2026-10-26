@@ -11,7 +11,10 @@ export function loadState(seed) {
     const saved = window.localStorage.getItem(STORAGE_KEY)
     if (!saved) return createSeedState(seed)
     const parsed = JSON.parse(saved)
-    return { ...createSeedState(seed), ...parsed, settings: { ...seed.settings, ...parsed.settings }, prefs: { ...seed.prefs, ...parsed.prefs } }
+    const savedRfqs = Array.isArray(parsed.rfqs) ? parsed.rfqs : []
+    const savedRfqIds = new Set(savedRfqs.map((item) => item.id))
+    const rfqs = [...savedRfqs, ...(seed.rfqs || []).filter((item) => !savedRfqIds.has(item.id))]
+    return { ...createSeedState(seed), ...parsed, rfqs, settings: { ...seed.settings, ...parsed.settings }, prefs: { ...seed.prefs, ...parsed.prefs } }
   } catch {
     return createSeedState(seed)
   }

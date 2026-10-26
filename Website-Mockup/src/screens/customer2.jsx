@@ -321,7 +321,7 @@ export function RfqDetail({ params }) {
                 {q.history.length > 1 && <button onClick={() => setHist(q)} className="mt-2 text-xs font-bold text-brand-700">Revised {q.history.length - 1}× — see history</button>}
                 {r.chat.filter((c) => c.vendorId === q.vendorId).map((c, i) => <p key={i} className={cx('mt-2 rounded-xl p-2.5 text-xs', c.from === 'me' ? 'bg-brand-50 text-brand-900' : 'bg-ink-100 text-ink-700')}><b>{c.from === 'me' ? 'You' : v.name.split(' ')[0]}:</b> {c.text}</p>)}
                 {!['accepted', 'closed', 'withdrawn', 'expired', 'no_quotes'].includes(r.status) && q.status !== 'rejected' && (
-                  <div className="mt-3 flex gap-2"><Button variant="secondary" size="sm" className="flex-1" onClick={() => { setRfqState('negotiating', 'Negotiation started with supplier'); setAsk(q) }}>Ask / negotiate</Button><Button disabled={dateExpired(q.validity)} size="sm" className="flex-1" onClick={() => setAcc(q)}>{dateExpired(q.validity) ? 'Quote expired' : 'Accept quote'}</Button></div>
+                  <div className="mt-3 flex gap-2"><Button variant="secondary" size="sm" className="flex-1" onClick={() => { setRfqState('negotiating', 'Revision requested from supplier'); setAsk(q) }}>Request revision</Button><Button disabled={dateExpired(q.validity)} size="sm" className="flex-1" onClick={() => setAcc(q)}>{dateExpired(q.validity) ? 'Quote expired' : 'Accept quote'}</Button></div>
                 )}
               </Card>
             )
