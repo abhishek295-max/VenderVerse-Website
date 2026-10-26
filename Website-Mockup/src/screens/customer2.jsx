@@ -190,10 +190,12 @@ export function OrderNew({ params = {} }) {
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [error, setError] = useState('')
   if (!l) return <Screen title="Create purchase order"><EmptyState icon={Package} title="Product unavailable" body="Choose an approved supplier listing or return to the quotation." action={<Button onClick={() => nav.back()}>Back</Button>} /></Screen>
+  const enforceMoq = me.role !== 'customer'
+  const minimumQty = enforceMoq ? (l.moq || 1) : 1
   const unitPrice = accepted?.amount || l.price
   const total = unitPrice * Number(f.qty || 0)
   const submit = (paymentState) => {
-    if (!Number.isInteger(Number(f.qty)) || Number(f.qty) < (l.moq || 1)) return setError(`Minimum order quantity is ${l.moq || 1}`)
+    if (!Number.isInteger(Number(f.qty)) || Number(f.qty) < minimumQty) return setError(enforceMoq ? `Minimum order quantity is ${minimumQty}` : 'Enter a valid quantity')
     if (l.stock !== undefined && Number(f.qty) > l.stock) return setError('Requested quantity is not available in the current catalogue')
     if (f.address.trim().length < 8) return setError('Add a delivery region or complete address')
     if (f.payment === 'Demo payment' && paymentState !== 'paid') return setPaymentOpen(true)
@@ -205,8 +207,8 @@ export function OrderNew({ params = {} }) {
     nav.replace('c_order', { id })
   }
   return <Screen title={rfq ? 'Create purchase order' : 'Buy / procure'} subtitle={rfq ? `From accepted quotation ${rfq.id}` : 'Supplier procurement'} overlay={<DemoPhonePePayment open={paymentOpen} amount={total} title="VendorVerse purchase order" onClose={() => setPaymentOpen(false)} onSuccess={() => { setPaymentOpen(false); submit('paid') }} />} footer={<Button full size="lg" icon={Package} onClick={() => submit()}>Create purchase order</Button>}>
-    <Card><p className="text-sm font-bold">{l.title}</p><p className="mt-1 text-xs text-ink-500">{vendor(l.vendorId)?.name} · {l.lead || 'Configured'} day lead time · MOQ {l.moq || 1}</p><p className="mt-2 text-xl font-black">{fmt(unitPrice)} <span className="text-xs font-normal text-ink-500">/ {l.unit}</span></p></Card>
-    <div className="flex gap-3"><Input label="Quantity" required type="number" min={l.moq || 1} value={f.qty} onChange={(e) => { setF({ ...f, qty: e.target.value }); setError('') }} /><Select label="Variant" value={f.variant} onChange={(e) => setF({ ...f, variant: e.target.value })} options={l.variants?.length ? l.variants : [{ value: '', label: 'Standard' }]} /></div>
+    <Card><p className="text-sm font-bold">{l.title}</p><p className="mt-1 text-xs text-ink-500">{vendor(l.vendorId)?.name} · {l.lead || 'Configured'} day lead time</p><p className="mt-2 text-xl font-black">{fmt(unitPrice)} <span className="text-xs font-normal text-ink-500">/ {l.unit}</span></p></Card>
+    <div className="flex gap-3"><Input label="Quantity" required type="number" min={minimumQty} value={f.qty} onChange={(e) => { setF({ ...f, qty: e.target.value }); setError('') }} /><Select label="Variant" value={f.variant} onChange={(e) => setF({ ...f, variant: e.target.value })} options={l.variants?.length ? l.variants : [{ value: '', label: 'Standard' }]} /></div>
     <Input label="Delivery region / address" required textarea rows={3} value={f.address} onChange={(e) => { setF({ ...f, address: e.target.value }); setError('') }} placeholder="Country, city, postal code and delivery instructions" />
     <Select label="Payment / commercial terms" value={f.payment} onChange={(e) => setF({ ...f, payment: e.target.value })} options={['Terms with supplier', 'Demo payment']} />
     {error && <Banner tone="red">{error}</Banner>}
@@ -349,7 +351,7 @@ export function Saved({ params = {} }) {
   const sl = listings.filter((l) => saved.includes(l.id))
   const sv = vendors.filter((v) => saved.includes(v.id))
   const cl = compare.map((id) => listings.find((l) => l.id === id)).filter(Boolean)
-  const rows = [['Price', (l) => <b>{fmt(l.price)}</b>], ['Rating', (l) => (l.rating ? `${l.rating} ★` : '—')], ['Vendor', (l) => vendor(l.vendorId).name.split(' ')[0]], ['Verified', (l) => (vendor(l.vendorId).status === 'approved' ? '✓' : '✕')], ['MOQ', (l) => l.moq || '—'], ['Lead time', (l) => (l.lead ? `${l.lead}d` : `${l.duration}m`)], ['Stock', (l) => (l.type === 'service' ? 'Bookable' : l.stock || 'Out')]]
+  const rows = [['Price', (l) => <b>{fmt(l.price)}</b>], ['Rating', (l) => (l.rating ? `${l.rating} ★` : '—')], ['Vendor', (l) => vendor(l.vendorId).name.split(' ')[0]], ['Verified', (l) => (vendor(l.vendorId).status === 'approved' ? '✓' : '✕')], ['Lead time', (l) => (l.lead ? `${l.lead}d` : `${l.duration}m`)], ['Stock', (l) => (l.type === 'service' ? 'Bookable' : l.stock || 'Out')]]
   return (
     <Screen title="Saved & compare">
       <Segmented value={tab} onChange={setTab} options={[{ id: 'saved', label: 'Saved', count: sl.length + sv.length }, { id: 'compare', label: 'Compare', count: cl.length }]} />

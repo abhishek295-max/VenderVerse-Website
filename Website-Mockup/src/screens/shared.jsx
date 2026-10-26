@@ -4,6 +4,8 @@ import { useNav } from '../nav.jsx'
 import { Thumb, Rating, Badge, StatusBadge, IconBtn, Card, Avatar, cx, fmt, Pill } from '../ui.jsx'
 import { cat } from '../data.jsx'
 
+export const vendorKind = (v) => v?.supplierType === 'business' || ['v-me', 'v-global-2'].includes(v?.id) ? 'Supplier' : cat(v?.cat).type === 'service' ? 'Service provider' : 'Vendor'
+
 export function useGate() {
   const { me, toast } = useApp()
   const nav = useNav()
@@ -73,7 +75,7 @@ export function ListingCard({ l, onClick, showVendor = true }) {
         <div className="mt-0 grid size-16 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Thumb tone={l.tone} icon={c.icon} size={54} round="rounded-xl" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1">
-            <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug text-ink-900">{l.title}</p>
+            <div className="min-w-0 flex-1"><div className="mb-1"><Badge tone={l.type === 'service' ? 'sky' : 'teal'}>{l.type === 'service' ? 'Service' : 'Product'}</Badge></div><p className="line-clamp-2 text-sm font-bold leading-snug text-ink-900">{l.title}</p></div>
             <span
               role="button"
               aria-label="Save"
@@ -115,7 +117,7 @@ export function VendorRow({ v, onClick }) {
         <div className="mt-0 grid size-14 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Avatar name={v.name} size={42} /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-bold">{v.name}</p>
+            <p className="truncate text-sm font-bold">{v.name}</p><Badge tone={vendorKind(v) === 'Supplier' ? 'teal' : vendorKind(v) === 'Service provider' ? 'sky' : 'gray'}>{vendorKind(v)}</Badge>
           </div>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-500"><MapPin size={12} />{v.city} · {c.name}</p>
           <div className="mt-1.5 flex items-center gap-2">

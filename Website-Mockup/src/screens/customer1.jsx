@@ -177,7 +177,7 @@ export function Category({ params }) {
 
 /* ================= EXPLORE / SEARCH ================= */
 const DEFAULT_F = { min: '', max: '', stock: false, verified: false, city: 'Any', rating: 0, sort: 'relevance' }
-export function Explore({ params = {} }) {
+export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = false }) {
   const nav = useNav()
   const { listings, vendors, compare, toggleCompare, me, setMe } = useApp()
   const [q, setQ] = useState(params.q || '')
@@ -188,9 +188,11 @@ export function Explore({ params = {} }) {
   const [open, setOpen] = useState(false)
   const applied = [f.min || f.max, f.stock, f.verified, f.city !== 'Any', f.rating > 0, f.sort !== 'relevance'].filter(Boolean).length
   const match = (s) => s.toLowerCase().includes(q.toLowerCase())
+  const supplierOnly = supplierOnlyOverride ?? (me.role === 'vendor' && me.buyerMode)
+  const isBusinessSupplier = (id) => ['v-me', 'v-global-2'].includes(id)
 
   const items = useMemo(() => {
-    let r = listings.filter((l) => l.status === 'approved')
+    let r = listings.filter((l) => l.status === 'approved' && (!supplierOnly || isBusinessSupplier(l.vendorId)))
     if (mode === 'products') r = r.filter((l) => l.type === 'product')
     if (mode === 'services') r = r.filter((l) => l.type === 'service')
     if (c !== 'all') r = r.filter((l) => l.cat === c)
@@ -205,17 +207,17 @@ export function Explore({ params = {} }) {
     if (f.sort === 'high') r = [...r].sort((a, b) => b.price - a.price)
     if (f.sort === 'rating') r = [...r].sort((a, b) => b.rating - a.rating)
     return r
-  }, [listings, vendors, mode, c, q, f])
+  }, [listings, vendors, mode, c, q, f, supplierOnly])
 
   const vs = useMemo(() => {
-    let r = visibleVendors(vendors)
+    let r = visibleVendors(vendors).filter((v) => !supplierOnly || isBusinessSupplier(v.id))
     if (c !== 'all') r = r.filter((v) => v.cat === c)
     if (q) r = r.filter((v) => match(v.name) || match(cat(v.cat).name) || match(v.city))
     if (f.verified) r = r.filter((v) => v.status === 'approved')
     if (f.city !== 'Any') r = r.filter((v) => v.areas.includes(f.city))
     if (f.rating) r = r.filter((v) => v.rating >= f.rating)
     return r
-  }, [vendors, c, q, f])
+  }, [vendors, c, q, f, supplierOnly])
 
   const showVendors = mode === 'all' || mode === 'vendors'
   const showItems = mode !== 'vendors'
@@ -237,7 +239,7 @@ export function Explore({ params = {} }) {
         </Sheet>
       }
     >
-      {me.role === 'vendor' && me.buyerMode && <div className="border-b border-violet-100 bg-violet-50 px-4 py-3"><div className="flex items-center gap-3"><Package size={19} className="shrink-0 text-violet-700" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-violet-950">Buying as {vendors.find((v) => v.id === me.vendorId)?.name || 'your business'}</p><p className="mt-0.5 text-xs text-violet-800/80">Source products, send an RFQ and create a supplier purchase order.</p></div><button onClick={() => { setMe({ ...me, buyerMode: false }); nav.reset('v_dash') }} className="shrink-0 rounded-lg bg-white px-2.5 py-2 text-xs font-bold text-violet-800 ring-1 ring-violet-200">Exit buyer</button></div></div>}
+      {supplierOnly && <div className="border-b border-violet-100 bg-violet-50 px-4 py-3"><div className="flex items-center gap-3"><Package size={19} className="shrink-0 text-violet-700" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-violet-950">Business suppliers only</p><p className="mt-0.5 text-xs text-violet-800/80">Browse company supplier products, send bulk RFQs and create purchase orders.</p></div><button onClick={() => { setMe({ ...me, buyerMode: false }); nav.reset('v_dash') }} className="shrink-0 rounded-lg bg-white px-2.5 py-2 text-xs font-bold text-violet-800 ring-1 ring-violet-200">Exit buyer</button></div></div>}
       <div className="vv-explore-tools space-y-3 bg-white px-4 pb-3 pt-3 shadow-sm">
         <SearchBar value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search vendors, products, services" right={
           <button onClick={() => { setDraft(f); setOpen(true) }} className="relative grid size-11 shrink-0 place-items-center rounded-xl bg-ink-900 text-white" aria-label="Filters">
@@ -245,7 +247,7 @@ export function Explore({ params = {} }) {
             {applied > 0 && <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-brand-500 text-[10px] font-bold ring-2 ring-white">{applied}</span>}
           </button>
         } />
-        <div className="vv-explore-modes"><Segmented value={mode} onChange={setMode} options={[{ id: 'all', label: 'All' }, { id: 'products', label: 'Products' }, { id: 'services', label: 'Services' }, { id: 'vendors', label: 'Vendors' }]} /></div>
+        <div className="vv-explore-modes"><Segmented value={mode} onChange={setMode} options={[{ id: 'all', label: 'All' }, { id: 'products', label: 'Products' }, { id: 'services', label: 'Services' }, ...(!hideVendorMode ? [{ id: 'vendors', label: 'Vendors' }] : [])]} /></div>
         <div className="vv-explore-categories"><Chips value={c} onChange={setC} options={[{ id: 'all', label: 'All categories' }, ...CATS.map((x) => ({ id: x.id, label: x.name }))]} /></div>
       </div>
       <div className="vv-explore-results space-y-4 p-4">
@@ -254,7 +256,7 @@ export function Explore({ params = {} }) {
           {(applied > 0 || c !== 'all' || q) && <button className="font-bold text-brand-700" onClick={() => { setF(DEFAULT_F); setC('all'); setQ('') }}>Clear all</button>}
         </div>
         {showVendors && vs.length > 0 && (
-          <Section title={mode === 'vendors' ? undefined : 'Vendors'}><div className="vv-explore-card-grid">{vs.map((v) => <VendorRow key={v.id} v={v} />)}</div></Section>
+          <Section title={mode === 'vendors' ? undefined : supplierOnly ? 'Business suppliers' : 'Vendors'}><div className="vv-explore-card-grid">{vs.map((v) => <VendorRow key={v.id} v={v} />)}</div></Section>
         )}
         {showItems && items.length > 0 && (
           <Section title={mode === 'all' ? 'Products & services' : undefined}>

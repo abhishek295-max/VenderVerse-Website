@@ -89,12 +89,12 @@ function ScreenHost() {
   const reg = SCREENS[nav.id] || SCREENS.welcome
   const C = reg.C
   const customerRoute = reg.role === 'customer' || (reg.role === 'shared' && me.role === 'customer')
-  const vendorWorkspaceRoute = ['v_dash', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id)
+  const vendorWorkspaceRoute = ['v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id)
   const vendorMessagesRoute = nav.id === 'messages' && (me.role === 'vendor' || me.role === 'business')
   const agentWorkspaceRoute = ['a_home', 'a_leads', 'a_followups', 'a_earnings', 'a_profile'].includes(nav.id)
   const adminWorkspaceRoute = ['ad_dash', 'ad_approvals', 'ad_users', 'ad_reports', 'ad_more'].includes(nav.id)
   return (
-    <div key={nav.depth + nav.id} className={cx('h-full min-w-0', nav.dir === 'push' ? 'animate-slide-in' : 'animate-fade-in', customerRoute && 'vv-customer-route', nav.id === 'c_explore' && 'vv-explore-route', nav.id === 'v_dash' && 'vv-vendor-dashboard-route', vendorWorkspaceRoute && 'vv-vendor-workspace-route', agentWorkspaceRoute && 'vv-agent-route', adminWorkspaceRoute && 'vv-admin-route', ['v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && 'vv-vendor-detail-route', vendorMessagesRoute && 'vv-vendor-message-route')}>
+    <div key={nav.depth + nav.id} className={cx('h-full min-w-0', nav.dir === 'push' ? 'animate-slide-in' : 'animate-fade-in', customerRoute && 'vv-customer-route', ['c_explore', 'v_explore'].includes(nav.id) && 'vv-explore-route', nav.id === 'v_dash' && 'vv-vendor-dashboard-route', vendorWorkspaceRoute && 'vv-vendor-workspace-route', agentWorkspaceRoute && 'vv-agent-route', adminWorkspaceRoute && 'vv-admin-route', ['v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && 'vv-vendor-detail-route', vendorMessagesRoute && 'vv-vendor-message-route')}>
       <C params={nav.params || {}} />
     </div>
   )
@@ -108,7 +108,7 @@ function Phone({ frame, scale, web = false }) {
       {frame && <StatusBar tone={reg.bar} />}
       <div className={cx('relative flex min-h-0 flex-1 flex-col', frame && 'pt-11')}>
         <div className="relative min-h-0 flex-1"><ScreenHost /><Toast /></div>
-        {!web && !['v_dash', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
+        {!web && !['v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
         {frame && <div className="h-5 shrink-0 bg-white" />}
       </div>
       {frame && <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-40 h-1.5 w-32 -translate-x-1/2 rounded-full bg-ink-900/85" />}
