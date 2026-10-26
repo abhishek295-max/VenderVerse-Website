@@ -1,6 +1,6 @@
 import { Children, useEffect, useRef, useState } from 'react'
 import {
-  ArrowLeft, Check, ChevronRight, Star, X, Search, Info, AlertTriangle, CheckCircle2, XCircle, Clock,
+  ArrowLeft, Check, ChevronRight, Star, X, Search, Info, AlertTriangle, CheckCircle2, XCircle, Clock, Smartphone, ShieldCheck,
   FileText, Upload, Inbox,
 } from 'lucide-react'
 import { useNav } from './nav.jsx'
@@ -101,6 +101,33 @@ export function Button({ variant = 'primary', size = 'md', icon: Icon, full, chi
       {children}
     </button>
   )
+}
+
+/* ---------- PhonePe-like browser demo payment ---------- */
+export function DemoPhonePePayment({ open, amount, title = 'PhonePe demo payment', onClose, onSuccess }) {
+  const [step, setStep] = useState('upi')
+  const [upi, setUpi] = useState('demo.user@upi')
+  const [pin, setPin] = useState('')
+  useEffect(() => { if (open) { setStep('upi'); setPin('') } }, [open])
+  if (!open) return null
+  const proceed = () => { if (/^[\w.-]+@[\w.-]+$/.test(upi.trim())) setStep('pin') }
+  const pay = () => {
+    if (!/^\d{4,6}$/.test(pin)) return
+    setStep('processing')
+    setTimeout(() => { setStep('success'); onSuccess?.({ ref: `PHPE-DEMO-${Date.now().toString().slice(-8)}` }) }, 1600)
+  }
+  return <div className="fixed inset-0 z-[80] grid place-items-center bg-ink-950/65 p-4">
+    <div className="w-full max-w-sm overflow-hidden rounded-[26px] bg-white shadow-2xl ring-1 ring-black/10">
+      <div className="bg-gradient-to-r from-[#5f259f] to-[#7b35c7] px-5 pb-5 pt-4 text-white"><div className="flex items-center justify-between"><div className="flex items-center gap-2.5"><span className="grid size-10 place-items-center rounded-xl bg-white text-xl font-black text-[#5f259f]">पे</span><div><p className="text-base font-black">PhonePe</p><p className="text-[11px] text-white/70">Secure demo checkout</p></div></div>{step !== 'processing' && <button aria-label="Close payment" onClick={onClose} className="rounded-full p-1.5 text-white/80 hover:bg-white/10"><X size={19} /></button>}</div><div className="mt-5 flex items-end justify-between"><div><p className="text-[11px] text-white/70">{title}</p><p className="mt-1 text-2xl font-black">₹{Number(amount || 0).toLocaleString('en-IN')}</p></div><ShieldCheck size={25} className="text-emerald-200" /></div></div>
+      <div className="space-y-4 p-5">
+        {step === 'upi' && <><div><p className="text-sm font-bold text-ink-900">Pay using UPI</p><p className="mt-1 text-xs text-ink-500">Enter a demo UPI ID to continue to PIN verification.</p></div><div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-center"><div className="mx-auto grid size-24 place-items-center rounded-xl bg-white text-4xl font-black text-[#5f259f] shadow-sm">⌁</div><p className="mt-2 text-[11px] font-semibold text-violet-800">Scan / enter UPI ID</p></div><label className="block text-xs font-semibold text-ink-700">UPI ID<input value={upi} onChange={(e) => setUpi(e.target.value)} className="mt-1 h-11 w-full rounded-xl bg-ink-50 px-3.5 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-[#5f259f]" placeholder="name@upi" /></label><Button full onClick={proceed}>Continue</Button></>}
+        {step === 'pin' && <><div><p className="text-sm font-bold text-ink-900">Enter UPI PIN</p><p className="mt-1 text-xs text-ink-500">Demo only — use any 4 to 6 digit PIN.</p></div><div className="rounded-2xl bg-ink-50 p-4 text-center"><Smartphone size={25} className="mx-auto text-[#5f259f]" /><p className="mt-2 text-sm font-bold">{upi}</p><p className="mt-1 text-xs text-ink-500">Amount ₹{Number(amount || 0).toLocaleString('en-IN')}</p></div><input autoFocus type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} className="h-14 w-full rounded-xl bg-white text-center text-2xl font-black tracking-[.6em] outline-none ring-2 ring-inset ring-[#5f259f]" placeholder="••••••" aria-label="UPI PIN" /><Button full onClick={pay}>Pay securely</Button><button onClick={() => setStep('upi')} className="w-full text-center text-xs font-bold text-[#5f259f]">Change UPI ID</button></>}
+        {step === 'processing' && <div className="py-8 text-center"><div className="mx-auto size-14 animate-spin rounded-full border-4 border-violet-100 border-t-[#5f259f]" /><p className="mt-5 text-base font-black text-ink-900">Processing payment…</p><p className="mt-1 text-xs text-ink-500">Do not close this window</p></div>}
+        {step === 'success' && <div className="py-5 text-center"><div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-emerald-600"><Check size={34} strokeWidth={3} /></div><p className="mt-4 text-xl font-black">Payment successful</p><p className="mt-1 text-sm text-ink-500">Demo transaction completed securely.</p><p className="mt-4 rounded-xl bg-ink-50 p-3 text-xs font-bold text-ink-700">Reference: PHPE-DEMO</p><Button full className="mt-5" onClick={onClose}>Done</Button></div>}
+        <p className="text-center text-[10px] text-ink-400">PhonePe-style UI for demonstration only. No real money is charged.</p>
+      </div>
+    </div>
+  </div>
 }
 export function IconBtn({ children, className, label, ...p }) {
   return (

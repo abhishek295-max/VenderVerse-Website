@@ -9,7 +9,7 @@ import { useNav } from '../nav.jsx'
 import { CATS, cat, listing as findListing, calcPrice, VENDOR_TX, PAYOUTS, SLOTS, ME } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Rating, Banner, EmptyState, Stat, KV, fmt, cx,
-  Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, Stepper, BarChart, HBar, Spark, Checkbox, Meta, SOFT,
+  Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, Stepper, BarChart, HBar, Spark, Checkbox, Meta, SOFT, DemoPhonePePayment,
 } from '../ui.jsx'
 import { NotifBell } from './shared.jsx'
 
@@ -63,7 +63,7 @@ export function VendorRegister() {
   const { me, setMe, vendors, setVendors, notify, toast, stamp } = useApp()
   const existing = vendors.find((v) => v.id === me.vendorId)
   const [step, setStep] = useState(0)
-  const [f, setF] = useState({ name: me.biz || existing?.name || '', owner: me.name || '', cat: 'elec', gstin: '', pan: '', email: '', years: '2020', areas: ['Jaipur'], branches: ['Main outlet — Jaipur'] })
+  const [f, setF] = useState({ name: me.biz || existing?.name || '', owner: me.name || '', vendorType: existing?.vendorType || 'service_provider', cat: 'elec', gstin: '', pan: '', email: '', years: '2020', areas: ['Jaipur'], branches: ['Main outlet — Jaipur'], certifications: '' })
   const [br, setBr] = useState('')
   const [docs, setDocs] = useState({})
   const [consent, setConsent] = useState(false)
@@ -88,7 +88,7 @@ export function VendorRegister() {
   const next = () => {
     if (!validate()) return
     if (step < 3) return setStep(step + 1)
-    const rec = { id: 'v-new', name: f.name, owner: f.owner, cat: f.cat, city: f.areas[0], areas: f.areas, branches: f.branches.length, rating: 0, reviews: 0, status: 'submitted', tone: cat(f.cat).tone, since: +f.years, gstin: f.gstin.toUpperCase(), phone: '+91 98290 00099', email: f.email, plan: 'Starter', docs: DOCS.map((d) => ({ name: d, status: 'pending' })), history: [{ s: 'submitted', at: stamp(), by: f.owner }] }
+    const rec = { id: 'v-new', name: f.name, owner: f.owner, vendorType: f.vendorType, cat: f.cat, city: f.areas[0], areas: f.areas, branches: f.branches.length, rating: 0, reviews: 0, status: 'submitted', tone: cat(f.cat).tone, since: +f.years, gstin: f.gstin.toUpperCase(), phone: '+91 98290 00099', email: f.email, plan: 'Starter', certifications: f.certifications, docs: DOCS.map((d) => ({ name: d, status: 'pending' })), history: [{ s: 'submitted', at: stamp(), by: f.owner }] }
     setVendors((vs) => [rec, ...vs.filter((x) => x.id !== 'v-new')])
     setMe({ ...me, vendorId: 'v-new' })
     notify('admin', 'Vendor awaiting review', `${f.name} submitted for verification.`, 'onboarding')
@@ -102,10 +102,12 @@ export function VendorRegister() {
         <div className="space-y-4">
           <Input label="Business name" required value={f.name} onChange={set('name')} error={errs.name} />
           <Input label="Owner / authorised person" value={f.owner} onChange={set('owner')} />
+          <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Vendor type</p><Segmented value={f.vendorType} onChange={set('vendorType')} options={[{ id: 'service_provider', label: 'Service provider' }, { id: 'manufacturer_supplier', label: 'Manufacturer / supplier' }]} /><p className="mt-1.5 text-xs text-ink-500">This changes the evidence and catalogue journey shown after approval.</p></div>
           <Select label="Primary category" value={f.cat} onChange={set('cat')} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />
           <Input label="GSTIN" required placeholder="08ABCPS1234F1Z5" maxLength={15} value={f.gstin} onChange={(e) => set('gstin')(e.target.value.toUpperCase())} error={errs.gstin} />
           <Input label="PAN" required placeholder="ABCPS1234F" maxLength={10} value={f.pan} onChange={(e) => set('pan')(e.target.value.toUpperCase())} error={errs.pan} />
           <Input label="Business email" required type="email" value={f.email} onChange={set('email')} error={errs.email} />
+          <Input label={f.vendorType === 'manufacturer_supplier' ? 'Product certifications / standards' : 'Service licences / certifications'} value={f.certifications} onChange={set('certifications')} placeholder={f.vendorType === 'manufacturer_supplier' ? 'e.g. ISO, BIS, export certificates' : 'e.g. trade licence, safety certification'} />
           <Select label="Operating since" value={f.years} onChange={set('years')} options={Array.from({ length: 15 }, (_, i) => String(2026 - i))} />
         </div>
       )}
@@ -129,7 +131,7 @@ export function VendorRegister() {
       )}
       {step === 3 && (
         <div className="space-y-4">
-          <Card><KV rows={[['Business', f.name], ['Category', cat(f.cat).name], ['GSTIN', f.gstin.toUpperCase()], ['PAN', f.pan.toUpperCase()], ['Service areas', f.areas.join(', ')], ['Branches', f.branches.length], ['Documents', `${Object.values(docs).filter(Boolean).length}/4 uploaded`]]} /></Card>
+          <Card><KV rows={[['Business', f.name], ['Vendor type', f.vendorType === 'manufacturer_supplier' ? 'Manufacturer / supplier' : 'Service provider'], ['Category', cat(f.cat).name], ['GSTIN', f.gstin.toUpperCase()], ['PAN', f.pan.toUpperCase()], ['Coverage', f.areas.join(', ')], ['Branches', f.branches.length], ['Certifications', f.certifications || 'To be reviewed'], ['Documents', `${Object.values(docs).filter(Boolean).length}/4 uploaded`]]} /></Card>
           <Banner tone="amber" title="What happens next">Super Admin reviews your application and will approve, reject with a reason, or request more information. You will not be shown as Verified until approved.</Banner>
           <div><Checkbox checked={consent} onChange={(v) => { setConsent(v); setErrs({}) }}>I confirm the details are accurate and consent to VendorVerse verifying my documents.</Checkbox>{errs.consent && <p className="mt-1 text-xs font-medium text-red-600">{errs.consent}</p>}</div>
         </div>
@@ -165,6 +167,7 @@ export function VendorVerify() {
   return (
     <VendorWorkspace>
     <Screen title="Verification" footer={needsFix ? <Button full size="lg" disabled={bad.some((d) => !fixed[d.name])} onClick={resubmit}>Resubmit for review</Button> : null}>
+      <DemoPhonePePayment open={!!paying} amount={paying?.price} title={`${paying?.name || ''} subscription`} onClose={() => setPaying(null)} onSuccess={() => { patchVendor(v.id, { plan: paying.name }); setPaidPlan(paying); setPaying(null) }} />
       <div className="vv-vendor-verify-body">
       <Card className={cx('!p-5 text-center', { green: 'bg-emerald-50', blue: 'bg-sky-50', amber: 'bg-amber-50', red: 'bg-red-50' }[meta[0]])}>
         <div className={cx('mx-auto grid size-16 place-items-center rounded-full bg-white shadow', { green: 'text-emerald-600', blue: 'text-sky-600', amber: 'text-amber-600', red: 'text-red-600' }[meta[0]])}>{v.status === 'approved' ? <BadgeCheck size={36} /> : v.status === 'submitted' ? <Clock size={34} /> : <AlertTriangle size={34} />}</div>
@@ -349,6 +352,18 @@ export function VendorRfq({ params }) {
   )
 }
 
+export function VendorOrders() {
+  const nav = useNav()
+  const { me, orders, listings, patchOrder, notify, toast, stamp } = useApp()
+  const mine = orders.filter((o) => o.vendorId === me.vendorId)
+  const next = { placed: ['confirmed', 'Accept order'], confirmed: ['packed', 'Start processing'], packed: ['shipped', 'Mark shipped'], shipped: ['delivered', 'Mark delivered'] }
+  const advance = (o) => { const n = next[o.status]; if (!n) return; patchOrder(o.id, (x) => ({ ...x, status: n[0], history: [...(x.history || []), { s: n[0], at: stamp(), note: n[1] }] })); notify('customer', `Order ${n[0]}`, `${o.id} · ${n[1]}`, 'order'); toast(`${o.id} updated`) }
+  return <VendorWorkspace><Screen title="Purchase orders" back={false}>
+    <Banner tone="blue">Supplier orders from direct catalogue purchases and accepted quotations appear here. Progress updates are visible to the buyer.</Banner>
+    <div className="space-y-2.5">{mine.map((o) => { const l = listings.find((x) => x.id === o.listingId); return <Card key={o.id} className="!p-3.5"><div className="flex items-start justify-between gap-2"><div><p className="text-xs font-bold text-ink-500">{o.id} · {o.customer}</p><p className="mt-1 text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="mt-1 text-xs text-ink-500">{o.qty} {l?.unit || 'units'} · {fmt(o.total || 0)} · {o.address}</p></div><StatusBadge s={o.status} /></div>{next[o.status] && <Button size="sm" className="mt-3" onClick={() => advance(o)}>{next[o.status][1]}</Button>}<button className="ml-2 mt-3 text-xs font-bold text-brand-700" onClick={() => nav.go('c_order', { id: o.id })}>View tracking</button></Card> })}{!mine.length && <EmptyState icon={Package} title="No purchase orders yet" body="Orders created by buyers will appear here." />}</div>
+  </Screen></VendorWorkspace>
+}
+
 /* ================= AVAILABILITY ================= */
 
 /* ================= INVENTORY ================= */
@@ -420,6 +435,7 @@ export function VendorProfile() {
   return (
     <VendorWorkspace>
     <Screen title="Business profile" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
+      <DemoPhonePePayment open={!!selectedPlan} amount={selectedPlan?.price} title={`${selectedPlan?.name || ''} subscription`} onClose={() => setSelectedPlan(null)} onSuccess={() => { patchVendor(v.id, { plan: selectedPlan.name }); setPaymentDone(selectedPlan); setSelectedPlan(null) }} />
       <div className="vv-vendor-profile-body">
       <div className="flex justify-center"><Thumb tone={v.tone} icon={Store} size={84} /></div>
       <Input label="Business name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} />
@@ -557,6 +573,7 @@ export function VendorMore() {
         <Card onClick={() => nav.go('v_profile')} className="!p-4"><div className="flex items-center gap-3.5"><Thumb tone={v?.tone || 'teal'} icon={Store} size={56} /><div className="min-w-0 flex-1"><p className="truncate text-base font-extrabold">{v?.name || 'Your business'}</p><p className="text-sm text-ink-500">{me.name}</p><div className="mt-1.5">{v?.status === 'approved' ? <Badge tone="green"><ShieldCheck size={11} />Verified</Badge> : <StatusBadge s={v?.status || 'draft'} />}</div></div><ChevronRight size={18} className="text-ink-300" /></div></Card>
         <Group>
           <ListRow icon={ShieldCheck} tone="emerald" title="Verification" subtitle="Documents & status" onClick={() => nav.go('v_verify')} />
+          <ListRow icon={Package} tone="sky" title="Purchase orders" subtitle="Supplier fulfilment & tracking" onClick={() => nav.go('v_orders')} />
           <ListRow icon={Star} tone="amber" title="Customer reviews" onClick={() => nav.go('v_reviews')} />
           <ListRow icon={BarChart3} tone="violet" title="Performance reports" subtitle="Enquiries, replies, quotes" onClick={() => nav.go('v_perf')} />
           <ListRow icon={Crown} tone="rose" title="Subscription plan" subtitle={`${v?.plan || 'Starter'} plan`} onClick={() => nav.go('v_profile')} last />

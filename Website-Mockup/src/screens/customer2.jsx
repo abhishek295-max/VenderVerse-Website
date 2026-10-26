@@ -10,7 +10,7 @@ import { useNav } from '../nav.jsx'
 import { cat, CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Rating, Banner, EmptyState, SearchBar,
-  PriceBreakdown, KV, fmt, cx, Pill, IconBtn, StatusBadge, Stars, ListRow, Group, Timeline, Avatar, SOFT, Meta,
+  PriceBreakdown, KV, fmt, cx, Pill, IconBtn, StatusBadge, Stars, ListRow, Group, Timeline, Avatar, SOFT, Meta, DemoPhonePePayment,
 } from '../ui.jsx'
 import { ListingCard, VendorRow, VerifiedBadge, useGate, useStartChat } from './shared.jsx'
 import { useSignIn } from './auth.jsx'
@@ -59,11 +59,10 @@ export function RfqNew({ params = {} }) {
     if (Object.keys(e).length) return
     const id = 'RFQ-' + (315 + rfqs.length)
     const location = `${f.city}, ${f.state}, ${f.country} ${f.pincode}`
-    f.cat = f.cats[0]
-    f.location = location
+    const primaryCat = f.cats[0]
     const [y, m, d] = f.deadline.split('-')
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
-    setRfqs((r) => [{ id, mine: true, customer: ME_NAME, title: f.title, cat: f.cat, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location: f.location, desc: f.desc, files, status: 'open', created: '19 Oct 2026', history: [{ s: 'open', at: 'Just now' }], quotes: [], chat: [] }, ...r])
+    setRfqs((r) => [{ id, mine: true, customer: ME_NAME, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'open', created: '19 Oct 2026', history: [{ s: 'open', at: 'Just now' }], quotes: [], chat: [] }, ...r])
     notify('vendor', 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
     toast('RFQ sent to matching vendors')
     nav.replace('c_rfq', { id })
@@ -171,6 +170,61 @@ export function BookingDetail({ params = {} }) {
   </Screen>
 }
 
+/* ================= PRODUCT PROCUREMENT ================= */
+export function OrderNew({ params = {} }) {
+  const nav = useNav()
+  const { me, listings, vendor, orders, setOrders, notify, toast, stamp, rfqs } = useApp()
+  const rfq = params.rfqId ? rfqs.find((x) => x.id === params.rfqId) : null
+  const accepted = rfq?.acceptedTerms
+  const quoteListing = accepted ? listings.find((x) => x.vendorId === accepted.vendorId && x.type === 'product') : null
+  const l = listings.find((x) => x.id === params.listingId) || quoteListing || (accepted && rfq ? { id: `rfq-${rfq.id}`, vendorId: accepted.vendorId, title: rfq.title, price: accepted.amount, unit: 'quotation', moq: 1, lead: accepted.lead, variants: [] } : null)
+  const [f, setF] = useState({ qty: 1, variant: l?.variants?.[0] || '', address: '', payment: 'Terms with supplier' })
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [error, setError] = useState('')
+  if (!l) return <Screen title="Create purchase order"><EmptyState icon={Package} title="Product unavailable" body="Choose an approved supplier listing or return to the quotation." action={<Button onClick={() => nav.back()}>Back</Button>} /></Screen>
+  const unitPrice = accepted?.amount || l.price
+  const total = unitPrice * Number(f.qty || 0)
+  const submit = (paymentState) => {
+    if (!Number.isInteger(Number(f.qty)) || Number(f.qty) < (l.moq || 1)) return setError(`Minimum order quantity is ${l.moq || 1}`)
+    if (l.stock !== undefined && Number(f.qty) > l.stock) return setError('Requested quantity is not available in the current catalogue')
+    if (f.address.trim().length < 8) return setError('Add a delivery region or complete address')
+    if (f.payment === 'Demo payment' && paymentState !== 'paid') return setPaymentOpen(true)
+    const id = `PO-${Date.now().toString().slice(-6)}`
+    const order = { id, vendorId: accepted?.vendorId || l.vendorId, listingId: l.id, rfqId: rfq?.id, qty: Number(f.qty), variant: f.variant, status: 'placed', pay: paymentState === 'paid' ? 'paid' : 'terms_pending', payRef: paymentState === 'paid' ? `demo_${Date.now()}` : undefined, date: stamp(), customer: me.name || ME_NAME, address: f.address.trim(), total, history: [{ s: 'placed', at: stamp(), note: rfq ? `Created from accepted quotation ${rfq.id}` : 'Purchase order created from supplier catalogue' }] }
+    setOrders((all) => [order, ...all])
+    notify('vendor', 'New purchase order', `${id} · ${l.title} · ${f.qty} ${l.unit}`, 'order')
+    toast('Purchase order created')
+    nav.replace('c_order', { id })
+  }
+  return <Screen title={rfq ? 'Create purchase order' : 'Buy / procure'} subtitle={rfq ? `From accepted quotation ${rfq.id}` : 'Supplier procurement'} overlay={<DemoPhonePePayment open={paymentOpen} amount={total} title="VendorVerse purchase order" onClose={() => setPaymentOpen(false)} onSuccess={() => { setPaymentOpen(false); submit('paid') }} />} footer={<Button full size="lg" icon={Package} onClick={() => submit()}>Create purchase order</Button>}>
+    <Card><p className="text-sm font-bold">{l.title}</p><p className="mt-1 text-xs text-ink-500">{vendor(l.vendorId)?.name} · {l.lead || 'Configured'} day lead time · MOQ {l.moq || 1}</p><p className="mt-2 text-xl font-black">{fmt(unitPrice)} <span className="text-xs font-normal text-ink-500">/ {l.unit}</span></p></Card>
+    <div className="flex gap-3"><Input label="Quantity" required type="number" min={l.moq || 1} value={f.qty} onChange={(e) => { setF({ ...f, qty: e.target.value }); setError('') }} /><Select label="Variant" value={f.variant} onChange={(e) => setF({ ...f, variant: e.target.value })} options={l.variants?.length ? l.variants : [{ value: '', label: 'Standard' }]} /></div>
+    <Input label="Delivery region / address" required textarea rows={3} value={f.address} onChange={(e) => { setF({ ...f, address: e.target.value }); setError('') }} placeholder="Country, city, postal code and delivery instructions" />
+    <Select label="Payment / commercial terms" value={f.payment} onChange={(e) => setF({ ...f, payment: e.target.value })} options={['Terms with supplier', 'Demo payment']} />
+    {error && <Banner tone="red">{error}</Banner>}
+    <Card><KV rows={[['Order total', fmt(total || 0)], ['Delivery', `${l.lead || 'Supplier'} day lead time`], ['Verification', vendor(l.vendorId)?.status === 'approved' ? 'Verified supplier' : 'Pending supplier']]} /></Card>
+    <Banner tone="blue" title="Procurement demo">This creates a trackable purchase order in the browser-local mock. Payment and fulfilment are simulated; a production implementation needs a server-side supplier and payment contract.</Banner>
+  </Screen>
+}
+
+const ORDER_STEPS = [['placed', 'Purchase order created'], ['confirmed', 'Supplier accepted'], ['packed', 'Processing'], ['shipped', 'Shipped'], ['delivered', 'Delivered'], ['completed', 'Completed']]
+export function OrderDetail({ params = {} }) {
+  const nav = useNav()
+  const { me, orders, patchOrder, listings, vendor, notify, toast, stamp } = useApp()
+  const o = orders.find((x) => x.id === params.id)
+  if (!o) return <Screen title="Purchase order"><EmptyState icon={Package} title="Order not found" action={<Button onClick={() => nav.back()}>Back</Button>} /></Screen>
+  const l = listings.find((x) => x.id === o.listingId)
+  const isVendor = me.role === 'vendor'
+  const next = { placed: ['confirmed', 'Supplier accepted'], confirmed: ['packed', 'Order processing'], packed: ['shipped', 'Order shipped'], shipped: ['delivered', 'Delivery marked received'], delivered: ['completed', 'Order completed'] }[o.status]
+  const update = (status, note, extra = {}) => { patchOrder(o.id, (x) => ({ ...x, ...extra, status, history: [...(x.history || []), { s: status, at: stamp(), note }] })); notify(isVendor ? 'customer' : 'vendor', `Order ${status}`, `${o.id} · ${note}`, 'order'); toast(`Order ${status.replaceAll('_', ' ')}`) }
+  return <Screen title={o.id} right={<StatusBadge s={o.status} className="mr-2" />}>
+    <Card><div className="flex items-center gap-3"><Thumb tone={l?.tone || 'teal'} icon={Package} size={52} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="text-xs text-ink-500">{vendor(o.vendorId)?.name || 'Supplier'} · {o.qty} {l?.unit || 'units'}</p></div></div><div className="mt-4"><KV rows={[['Buyer', o.customer], ['Delivery', o.address], ['Commercial total', fmt(o.total || 0)], ['Payment', o.pay === 'paid' ? 'Demo payment captured' : 'Terms pending']]} /></div></Card>
+    <Card><Timeline steps={(o.history || []).map((h) => ({ label: ORDER_STEPS.find((x) => x[0] === h.s)?.[1] || h.s, at: h.at, note: h.note, done: true }))} /></Card>
+    <div className="flex flex-wrap gap-2">{!isVendor && ['placed', 'confirmed'].includes(o.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by buyer', { pay: o.pay === 'paid' ? 'refund_pending' : o.pay })}>Cancel order</Button>}{isVendor && next && <Button onClick={() => update(next[0], next[1])}>{next[1]}</Button>}{!isVendor && o.status === 'delivered' && <Button onClick={() => update('completed', 'Buyer confirmed delivery')}>Confirm delivery</Button>}<Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Message supplier</Button></div>
+    {o.status === 'cancelled' && <Banner tone="amber" title="Cancellation recorded">Refund or settlement status: {o.pay || 'pending'}.</Banner>}
+  </Screen>
+}
+
 export function RfqDetail({ params }) {
   const nav = useNav()
   const { rfqs, patchRfq, vendor, notify, toast, stamp } = useApp()
@@ -226,7 +280,7 @@ export function RfqDetail({ params }) {
         <div className="mt-3 grid grid-cols-2 gap-3 text-xs"><Meta icon={Package}>{r.qty}</Meta><Meta icon={CircleDollarSign}>{r.budget}</Meta><Meta icon={Clock}>Quotes by {r.deadline}</Meta><Meta icon={Store}>{cat(r.cat).name}</Meta></div>
       </Card>
       {accepted && (
-        <Banner tone="green" title={`Accepted: ${vendor(accepted.vendorId).name}`} action={<Button size="sm" icon={MessageCircle} onClick={() => nav.go('chat', { vendorId: accepted.vendorId })}>Message vendor</Button>}>Accepted terms saved: {fmt((r.acceptedTerms || accepted).amount)} · { (r.acceptedTerms || accepted).lead } days · valid until {(r.acceptedTerms || accepted).validity}. Confirm delivery and payment directly with the vendor.</Banner>
+        <Banner tone="green" title={`Accepted: ${vendor(accepted.vendorId).name}`} action={<div className="flex gap-2"><Button size="sm" variant="secondary" icon={MessageCircle} onClick={() => nav.go('chat', { vendorId: accepted.vendorId })}>Message vendor</Button><Button size="sm" onClick={() => nav.go('c_order_new', { rfqId: r.id })}>Create PO</Button></div>}>Accepted terms saved: {fmt((r.acceptedTerms || accepted).amount)} · { (r.acceptedTerms || accepted).lead } days · valid until {(r.acceptedTerms || accepted).validity}. Continue to a purchase order for supplier fulfilment.</Banner>
       )}
       <Segmented value={tab} onChange={setTab} options={[{ id: 'quotes', label: 'Quotes', count: r.quotes.length }, { id: 'details', label: 'Details' }, { id: 'history', label: 'History' }]} />
       {tab === 'quotes' && (
@@ -266,7 +320,7 @@ export function RfqDetail({ params }) {
       {tab === 'details' && (
         <div className="space-y-3">
           <Card><p className="text-sm leading-relaxed text-ink-600">{r.desc}</p></Card>
-          <Card><KV rows={[['Category', cat(r.cat).name], ['Quantity', r.qty], ['Budget', r.budget], ['Location', r.location], ['Created', r.created], ['Deadline', r.deadline]]} /></Card>
+          <Card><KV rows={[['Categories', (r.cats || [r.cat]).map((id) => cat(id).name).join(', ')], ['Budget by category', r.categoryBudgets ? Object.entries(r.categoryBudgets).map(([id, amount]) => `${cat(id).name}: ${amount || 'Not set'}`).join(' · ') : r.budget], ['Quantity', r.qty], ['Location', r.location], ['Created', r.created], ['Deadline', r.deadline]]} /></Card>
           {r.files.length > 0 && <Section title="Attachments"><div className="space-y-2">{r.files.map((f) => <div key={f} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-inset ring-ink-200"><FileText size={18} className="text-brand-600" /><span className="flex-1 truncate text-sm font-medium">{f}</span><Download size={16} className="text-ink-400" /></div>)}</div></Section>}
         </div>
       )}

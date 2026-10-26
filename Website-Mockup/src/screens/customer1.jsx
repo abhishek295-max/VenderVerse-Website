@@ -295,7 +295,7 @@ export function ListingDetail({ params }) {
           </div>
           <Button variant="secondary" icon={Phone} onClick={() => toast(`Calling ${v.name}…`)} aria-label="Call vendor" />
           {isSvc && <Button disabled={!live} variant="secondary" className="flex-1" size="lg" icon={MessageCircle} onClick={enquire}>Message</Button>}
-          <Button disabled={!live} className="flex-1" size="lg" icon={isSvc ? CalendarCheck : MessageCircle} onClick={() => isSvc ? (gate('Log in to request a service booking') && nav.go('c_booking_new', { listingId: l.id })) : enquire()}>{isSvc ? 'Request booking' : 'Message vendor'}</Button>
+          <Button disabled={!live} className="flex-1" size="lg" icon={isSvc ? CalendarCheck : CreditCard} onClick={() => isSvc ? (gate('Log in to request a service booking') && nav.go('c_booking_new', { listingId: l.id })) : (gate('Log in to place an order') && nav.go('c_order_new', { listingId: l.id }))}>{isSvc ? 'Request booking' : 'Buy / procure'}</Button>
         </div>
       }
     >
