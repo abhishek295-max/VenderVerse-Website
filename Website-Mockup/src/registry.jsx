@@ -5,6 +5,7 @@ import * as V from './screens/vendor.jsx'
 import * as A from './screens/agent.jsx'
 import * as AD from './screens/admin.jsx'
 import { WebsiteHome } from './screens/website-home.jsx'
+import { ScopeReview } from './screens/scope.jsx'
 
 
 /*  id → { C: component, role, title, fr: [FR codes], bar: status-bar tone, defaultParams: route defaults for the directory }  */
@@ -17,6 +18,7 @@ export const SCREENS = Object.fromEntries([
   R('login', Auth.Login, 'auth', 'Log in (phone / email)', ['FR-01', 'FR-02']),
   R('otp', Auth.Otp, 'auth', 'OTP & admin MFA', ['FR-01', 'FR-02'], { defaultParams: { contact: '+91 98290 00001', role: 'customer' } }),
   R('register', Auth.Register, 'auth', 'Create account', ['FR-01', 'FR-03']),
+  R('scope_review', ScopeReview, 'auth', 'MVP scope review', ['FR-05', 'FR-15']),
 
   // ---- customer ----
   R('c_home', WebsiteHome, 'customer', 'Marketplace', ['FR-05', 'FR-10'], { tab: true, bar: 'brand' }),

@@ -55,6 +55,14 @@ export const PHASE2 = [
   'Advanced notification preferences, quiet hours, device/session controls, detailed security history.',
 ]
 
+export const FUTURE = [
+  'Multi-vendor project workspaces with shared budgets, dependencies and work packages.',
+  'AI-led marketplace assistance beyond the MVP discovery and quotation flows.',
+  'Advanced workforce, logistics, dispatch and field-operations automation.',
+  'Enterprise-grade procurement approvals, budgets, cost centres and supplier governance.',
+  'Cross-border trade automation, advanced compliance and country-specific tax workflows.',
+]
+
 export const ACCEPTANCE = [
   'Each role can perform only authorized actions; cross-vendor access is blocked.',
   'Vendor onboarding produces clear approval, rejection, or additional-information outcomes.',

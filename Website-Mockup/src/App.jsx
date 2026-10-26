@@ -158,6 +158,7 @@ function Directory({ onJump, onClose }) {
         {list.length === 0 && <p className="p-6 text-center text-sm text-ink-500">No screens match.</p>}
       </div>
       <div className="space-y-1 border-t border-ink-100 p-3">
+        <button onClick={() => { onJump('scope_review'); onClose?.() }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-bold text-brand-700 hover:bg-brand-50">MVP scope & roadmap review</button>
         <button onClick={() => { onJump('login'); onClose?.() }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-brand-700 hover:bg-brand-50">Sign in</button>
         <button onClick={() => { onJump('register'); onClose?.() }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ink-600 hover:bg-ink-50">Create account</button>
       </div>
