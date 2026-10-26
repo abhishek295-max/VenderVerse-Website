@@ -13,6 +13,8 @@ import {
 } from '../ui.jsx'
 import { NotifBell, VerifiedBadge } from './shared.jsx'
 
+const INDUSTRIES = ['Construction & Infrastructure', 'Electrical & Energy', 'Office & Technology', 'Home & Facilities', 'Food & Events', 'Professional Services']
+
 /* ================= DASHBOARD ================= */
 export function AdminDashboard() {
   const nav = useNav()
@@ -271,33 +273,53 @@ export function Roles() {
 /* ================= CATEGORIES ================= */
 export function AdminCategories() {
   const nav = useNav()
-  const { toast, categories, setCustomCategories } = useApp()
+  const { toast, categories, setCustomCategories, setCategoryOverrides, categoryOverrides, addAudit, industries, setIndustries } = useApp()
   const [on, setOn] = useState(() => Object.fromEntries(categories.map((c) => [c.id, c.active !== false])))
+  const [mergeSource, setMergeSource] = useState(null)
+  const [mergeTarget, setMergeTarget] = useState('')
+  const [newIndustry, setNewIndustry] = useState('')
+  const merge = () => {
+    const source = categories.find((c) => c.id === mergeSource)
+    const target = categories.find((c) => c.id === mergeTarget)
+    if (!source || !target || source.id === target.id) return
+    const merged = { subs: [...new Set([...(target.subs || []), ...(source.subs || [])])], fields: [...new Set([...(target.fields || []), ...(source.fields || [])])], filters: [...new Set([...(target.filters || []), ...(source.filters || [])])], mergedFrom: [...(target.mergedFrom || []), source.name] }
+    if (target.id.startsWith('custom-')) setCustomCategories((all) => all.map((c) => c.id === target.id ? { ...c, ...merged } : c))
+    else setCategoryOverrides((all) => ({ ...all, [target.id]: { ...(all[target.id] || {}), ...merged } }))
+    if (source.id.startsWith('custom-')) setCustomCategories((all) => all.map((c) => c.id === source.id ? { ...c, active: false, mergedInto: target.id } : c))
+    else setCategoryOverrides((all) => ({ ...all, [source.id]: { ...(all[source.id] || {}), active: false, mergedInto: target.id } }))
+    setOn((all) => ({ ...all, [source.id]: false })); addAudit('Merged category', `${source.name} → ${target.name}`, 'setting'); toast(`${source.name} merged into ${target.name}`); setMergeSource(null); setMergeTarget('')
+  }
   return (
-    <Screen title="Categories" right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('ad_category')}>Add</Button>}>
+    <Screen title="Categories & industries" right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('ad_category')}>Add category</Button>}>
+      <Section title="Industries"><Card className="!p-3.5"><div className="flex flex-wrap gap-2">{industries.map((industry) => <span key={industry} className="flex items-center gap-1.5 rounded-full bg-ink-100 py-1.5 pl-3 pr-2 text-xs font-semibold text-ink-700">{industry}<button aria-label={`Remove ${industry}`} onClick={() => setIndustries((all) => all.filter((x) => x !== industry))}><X size={13} /></button></span>)}</div><div className="mt-3 flex gap-2"><input value={newIndustry} onChange={(e) => setNewIndustry(e.target.value)} placeholder="Add industry" className="h-10 flex-1 rounded-xl bg-white px-3.5 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" /><Button variant="soft" onClick={() => { const value = newIndustry.trim(); if (value && !industries.includes(value)) { setIndustries((all) => [...all, value]); addAudit('Created industry', value, 'setting'); setNewIndustry('') } }}>Add</Button></div></Card></Section>
       {categories.map((c) => (
-        <Card key={c.id} className="!p-3.5"><div className="flex items-center gap-3"><button onClick={() => nav.go('ad_category', { id: c.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><Thumb tone={c.tone} icon={c.icon} size={48} round="rounded-xl" /><div className="min-w-0"><p className="truncate text-sm font-bold">{c.name}</p><p className="text-xs text-ink-500">{c.type === 'service' ? 'Services' : 'Products'} · {c.subs.length} subs · {c.fields.length} required fields · {on[c.id] ? 'Published' : 'Inactive'}</p></div></button><button role="switch" aria-checked={on[c.id]} aria-label="Toggle category" onClick={() => { const active = !on[c.id]; setOn({ ...on, [c.id]: active }); if (c.id.startsWith('custom-')) setCustomCategories((all) => all.map((x) => (x.id === c.id ? { ...x, active } : x))); toast(active ? 'Category published' : 'Category deactivated') }} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', on[c.id] ? 'bg-brand-600' : 'bg-ink-300')}><span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', on[c.id] ? 'left-[22px]' : 'left-0.5')} /></button></div></Card>
+        <Card key={c.id} className="!p-3.5"><div className="flex items-center gap-3"><button onClick={() => nav.go('ad_category', { id: c.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><Thumb tone={c.tone} icon={c.icon} size={48} round="rounded-xl" /><div className="min-w-0"><p className="truncate text-sm font-bold">{c.name}</p><p className="text-xs text-ink-500">{c.industry || 'Unassigned industry'} · {c.type === 'service' ? 'Services' : 'Products'} · {c.subs.length} subs · {c.fields.length} fields · {c.filters?.length || 0} filters · {on[c.id] ? 'Published' : 'Inactive'}</p></div></button><button className="shrink-0 rounded-lg px-2 py-1.5 text-[11px] font-bold text-brand-700 hover:bg-brand-50" onClick={() => { setMergeSource(c.id); setMergeTarget(categories.find((x) => x.id !== c.id && x.active !== false)?.id || '') }}>Merge</button><button role="switch" aria-checked={on[c.id]} aria-label="Toggle category" onClick={() => { const active = !on[c.id]; setOn({ ...on, [c.id]: active }); if (c.id.startsWith('custom-')) setCustomCategories((all) => all.map((x) => (x.id === c.id ? { ...x, active } : x))); else setCategoryOverrides((all) => ({ ...all, [c.id]: { ...(all[c.id] || {}), active } })); toast(active ? 'Category published' : 'Category deactivated') }} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', on[c.id] ? 'bg-brand-600' : 'bg-ink-300')}><span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', on[c.id] ? 'left-[22px]' : 'left-0.5')} /></button></div></Card>
       ))}
+      <Dialog open={!!mergeSource} onClose={() => setMergeSource(null)} title="Merge category" actions={<><Button variant="secondary" className="flex-1" onClick={() => setMergeSource(null)}>Cancel</Button><Button className="flex-1" disabled={!mergeTarget} onClick={merge}>Merge</Button></>}><p className="text-sm text-ink-600">Move the source category’s subcategories, fields and filters into the target, then deactivate the source.</p><div className="mt-4"><Select label="Merge into" value={mergeTarget} onChange={(e) => setMergeTarget(e.target.value)} options={categories.filter((c) => c.id !== mergeSource && c.active !== false).map((c) => ({ value: c.id, label: c.name }))} /></div></Dialog>
     </Screen>
   )
 }
 export function AdminCategory({ params = {} }) {
   const nav = useNav()
-  const { toast, addAudit, categories, customCategories, setCustomCategories } = useApp()
+  const { toast, addAudit, categories, customCategories, setCustomCategories, setCategoryOverrides, categoryOverrides, industries } = useApp()
   const ex = params.id ? categories.find((x) => x.id === params.id) : null
-  const [f, setF] = useState({ name: ex?.name || '', type: ex?.type || 'product', subs: ex?.subs || [], fields: ex?.fields || [] })
+  const [f, setF] = useState({ name: ex?.name || '', industry: ex?.industry || industries[0] || INDUSTRIES[0], type: ex?.type || 'product', subs: ex?.subs || [], fields: ex?.fields || [], filters: ex?.filters || [] })
   const [sub, setSub] = useState('')
   const [fld, setFld] = useState('')
+  const [filter, setFilter] = useState('')
   const [err, setErr] = useState('')
   const save = () => {
     if (f.name.trim().length < 3) return setErr('Category name is required')
     if (!f.subs.length) return setErr('Add at least one subcategory')
-    if (!ex) setCustomCategories((all) => [...all, { id: `custom-${Date.now()}`, name: f.name.trim(), type: f.type, subs: f.subs, fields: f.fields, tone: 'teal', active: true }])
+    if (!ex) setCustomCategories((all) => [...all, { id: `custom-${Date.now()}`, name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters, tone: 'teal', active: true }])
+    else if (ex.id.startsWith('custom-')) setCustomCategories((all) => all.map((c) => c.id === ex.id ? { ...c, name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters } : c))
+    else setCategoryOverrides((all) => ({ ...all, [ex.id]: { ...(all[ex.id] || {}), name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters } }))
     addAudit(ex ? 'Updated category' : 'Created category', f.name, 'setting'); toast('Category saved'); nav.back()
   }
   return (
     <Screen title={ex ? 'Edit category' : 'New category'} footer={<Button full size="lg" onClick={save}>Save category</Button>}>
       <Input label="Category name" required value={f.name} onChange={(e) => { setF({ ...f, name: e.target.value }); setErr('') }} error={err && !f.name.trim() ? err : ''} />
+      <Select label="Industry" value={f.industry} onChange={(e) => setF({ ...f, industry: e.target.value })} options={industries.length ? industries : INDUSTRIES} />
       <Segmented value={f.type} onChange={(t) => setF({ ...f, type: t })} options={[{ id: 'product', label: 'Product' }, { id: 'service', label: 'Service' }]} />
       <Section title="Subcategories">
         <div className="mb-2 flex flex-wrap gap-2">{f.subs.map((s) => <span key={s} className="flex items-center gap-1.5 rounded-full bg-ink-900 py-1.5 pl-3 pr-2 text-xs font-semibold text-white">{s}<button aria-label={`Remove ${s}`} onClick={() => setF({ ...f, subs: f.subs.filter((x) => x !== s) })}><X size={13} /></button></span>)}</div>
@@ -307,6 +329,7 @@ export function AdminCategory({ params = {} }) {
         <div className="mb-2 space-y-2">{f.fields.map((s) => <div key={s} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-inset ring-ink-200"><ListChecks size={17} className="text-brand-600" /><span className="flex-1 text-sm font-medium">{s}</span><button aria-label={`Remove ${s}`} onClick={() => setF({ ...f, fields: f.fields.filter((x) => x !== s) })}><Trash2 size={16} className="text-ink-400" /></button></div>)}</div>
         <div className="flex gap-2"><input value={fld} onChange={(e) => setFld(e.target.value)} placeholder="e.g. Warranty (months)" className="h-11 flex-1 rounded-xl bg-white px-3.5 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" /><Button variant="soft" onClick={() => { if (fld.trim()) { setF({ ...f, fields: [...f.fields, fld.trim()] }); setFld('') } }}>Add</Button></div>
       </Section>
+      <Section title="Customer filters"><div className="mb-2 space-y-2">{f.filters.map((s) => <div key={s} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-inset ring-ink-200"><Tag size={17} className="text-brand-600" /><span className="flex-1 text-sm font-medium">{s}</span><button aria-label={`Remove ${s}`} onClick={() => setF({ ...f, filters: f.filters.filter((x) => x !== s) })}><Trash2 size={16} className="text-ink-400" /></button></div>)}</div><div className="flex gap-2"><input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="e.g. Delivery region" className="h-11 flex-1 rounded-xl bg-white px-3.5 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" /><Button variant="soft" onClick={() => { if (filter.trim()) { setF({ ...f, filters: [...f.filters, filter.trim()] }); setFilter('') } }}>Add</Button></div><p className="mt-2 text-xs text-ink-500">These are stored with the category and can drive marketplace filters in a production implementation.</p></Section>
       {err && f.name.trim() && <p className="text-sm font-medium text-red-600">{err}</p>}
     </Screen>
   )

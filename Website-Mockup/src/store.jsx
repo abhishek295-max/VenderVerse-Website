@@ -48,6 +48,8 @@ export function AppProvider({ children, initialMe }) {
   const seed = useMemo(() => ({
     me: { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest', accountState: 'active', buyerMode: false },
     customCategories: [],
+    categoryOverrides: {},
+    industries: ['Construction & Infrastructure', 'Electrical & Energy', 'Office & Technology', 'Home & Facilities', 'Food & Events', 'Professional Services'],
     lang: 'en', locale: { country: 'IN', currency: 'INR', timeZone: 'Asia/Kolkata' }, vendors: VENDORS0, listings: LISTINGS0, orders: ORDERS0,
     bookings: BOOKINGS0, rfqs: RFQS0, leads: LEADS0, commissions: COMMISSIONS0, disputes: DISPUTES0, users: USERS0, agents: AGENTS0,
     audit: AUDIT0, notifs: NOTIFS0, threads: THREADS0, settings: SETTINGS0, reviews: REVIEWS0, saved: ['l3', 'l11', 'v7'], compare: [],
@@ -78,10 +80,12 @@ export function AppProvider({ children, initialMe }) {
   const [reviewed, setReviewed] = useState(restored.reviewed)
   const [prefs, setPrefs] = useState(restored.prefs)
   const [customCategories, setCustomCategories] = useState(restored.customCategories || [])
+  const [categoryOverrides, setCategoryOverrides] = useState(restored.categoryOverrides || {})
+  const [industries, setIndustries] = useState(restored.industries || [])
 
   useEffect(() => {
-    saveState({ me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs, customCategories })
-  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs, customCategories])
+    saveState({ me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs, customCategories, categoryOverrides, industries })
+  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs, customCategories, categoryOverrides, industries])
 
   const toast = useCallback((msg, tone = 'ok') => {
     const id = Date.now()
@@ -115,7 +119,8 @@ export function AppProvider({ children, initialMe }) {
       agents, setAgents,
       audit, notifs, setNotifs, threads, setThreads,
       settings, setSettings, reviews, setReviews, reviewed, setReviewed,
-      categories: [...CATS, ...customCategories.map((c) => ({ ...c, icon: CATS[0].icon }))], customCategories, setCustomCategories,
+      categories: [...CATS.map((c) => ({ ...c, ...(categoryOverrides[c.id] || {}) })), ...customCategories.map((c) => ({ ...c, icon: CATS[0].icon }))], customCategories, setCustomCategories, categoryOverrides, setCategoryOverrides,
+      industries, setIndustries,
       saved, setSaved, compare, setCompare, prefs, setPrefs,
       toggleSaved: (id) => setSaved((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])),
       toggleCompare: (id) => setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? c : [...c, id])),
@@ -125,7 +130,7 @@ export function AppProvider({ children, initialMe }) {
       resetWorkspace: () => { clearState(); window.location.reload() },
       stamp,
     }
-  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, reviewed, saved, compare, toastMsg, prefs, toast, addAudit, notify, patch])
+  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, reviewed, saved, compare, toastMsg, prefs, categoryOverrides, industries, toast, addAudit, notify, patch])
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }
