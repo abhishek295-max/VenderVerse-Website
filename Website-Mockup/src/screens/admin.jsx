@@ -271,12 +271,12 @@ export function Roles() {
 /* ================= CATEGORIES ================= */
 export function AdminCategories() {
   const nav = useNav()
-  const { toast, categories } = useApp()
-  const [on, setOn] = useState(() => Object.fromEntries(categories.map((c) => [c.id, true])))
+  const { toast, categories, setCustomCategories } = useApp()
+  const [on, setOn] = useState(() => Object.fromEntries(categories.map((c) => [c.id, c.active !== false])))
   return (
     <Screen title="Categories" right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('ad_category')}>Add</Button>}>
       {categories.map((c) => (
-        <Card key={c.id} className="!p-3.5"><div className="flex items-center gap-3"><button onClick={() => nav.go('ad_category', { id: c.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><Thumb tone={c.tone} icon={c.icon} size={48} round="rounded-xl" /><div className="min-w-0"><p className="truncate text-sm font-bold">{c.name}</p><p className="text-xs text-ink-500">{c.type === 'service' ? 'Services' : 'Products'} · {c.subs.length} subs · {c.fields.length} required fields</p></div></button><button role="switch" aria-checked={on[c.id]} aria-label="Toggle category" onClick={() => { setOn({ ...on, [c.id]: !on[c.id] }); toast(on[c.id] ? 'Category hidden' : 'Category visible') }} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', on[c.id] ? 'bg-brand-600' : 'bg-ink-300')}><span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', on[c.id] ? 'left-[22px]' : 'left-0.5')} /></button></div></Card>
+        <Card key={c.id} className="!p-3.5"><div className="flex items-center gap-3"><button onClick={() => nav.go('ad_category', { id: c.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><Thumb tone={c.tone} icon={c.icon} size={48} round="rounded-xl" /><div className="min-w-0"><p className="truncate text-sm font-bold">{c.name}</p><p className="text-xs text-ink-500">{c.type === 'service' ? 'Services' : 'Products'} · {c.subs.length} subs · {c.fields.length} required fields · {on[c.id] ? 'Published' : 'Inactive'}</p></div></button><button role="switch" aria-checked={on[c.id]} aria-label="Toggle category" onClick={() => { const active = !on[c.id]; setOn({ ...on, [c.id]: active }); if (c.id.startsWith('custom-')) setCustomCategories((all) => all.map((x) => (x.id === c.id ? { ...x, active } : x))); toast(active ? 'Category published' : 'Category deactivated') }} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', on[c.id] ? 'bg-brand-600' : 'bg-ink-300')}><span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', on[c.id] ? 'left-[22px]' : 'left-0.5')} /></button></div></Card>
       ))}
     </Screen>
   )
@@ -292,7 +292,7 @@ export function AdminCategory({ params = {} }) {
   const save = () => {
     if (f.name.trim().length < 3) return setErr('Category name is required')
     if (!f.subs.length) return setErr('Add at least one subcategory')
-    if (!ex) setCustomCategories((all) => [...all, { id: `custom-${Date.now()}`, name: f.name.trim(), type: f.type, subs: f.subs, fields: f.fields, tone: 'teal' }])
+    if (!ex) setCustomCategories((all) => [...all, { id: `custom-${Date.now()}`, name: f.name.trim(), type: f.type, subs: f.subs, fields: f.fields, tone: 'teal', active: true }])
     addAudit(ex ? 'Updated category' : 'Created category', f.name, 'setting'); toast('Category saved'); nav.back()
   }
   return (

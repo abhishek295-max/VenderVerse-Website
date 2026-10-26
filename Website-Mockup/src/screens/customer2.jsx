@@ -63,7 +63,7 @@ export function RfqNew({ params = {} }) {
     const [y, m, d] = f.deadline.split('-')
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
     const buyerName = me.role === 'vendor' ? (vendor(me.vendorId)?.name || me.name || 'Business buyer') : ME_NAME
-    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, customer: buyerName, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'open', created: '19 Oct 2026', history: [{ s: 'open', at: 'Just now' }], quotes: [], chat: [] }, ...r])
+    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, customer: buyerName, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'submitted', created: '19 Oct 2026', history: [{ s: 'submitted', at: 'Just now', note: 'Sent to matching vendors' }], quotes: [], chat: [] }, ...r])
     notify('vendor', me.role === 'vendor' ? 'Vendor buyer RFQ published' : 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
     toast('RFQ sent to matching vendors')
     nav.replace('c_rfq', { id })
@@ -94,7 +94,7 @@ export function BookingNew({ params = {} }) {
   const nav = useNav()
   const { me, listings, vendor, bookings, setBookings, notify, toast, stamp } = useApp()
   const l = listings.find((x) => x.id === params.listingId && x.type === 'service')
-  const [f, setF] = useState({ date: nextDate(), slot: '10:00 AM', address: '', notes: '' })
+  const [f, setF] = useState({ mode: 'scheduled', date: nextDate(), slot: '10:00 AM', repeat: 'Weekly · 4 visits', address: '', notes: '' })
   const [errs, setErrs] = useState({})
   if (!l) return <Screen title="Request service"><EmptyState icon={CalendarCheck} title="Service unavailable" body="Choose an active service listing to request a booking." action={<Button onClick={() => nav.back()}>Back to listing</Button>} /></Screen>
   const v = vendor(l.vendorId)
@@ -102,21 +102,26 @@ export function BookingNew({ params = {} }) {
   const availableSlots = SLOTS.filter((slot) => !reserved.includes(slot))
   const submit = () => {
     const e = {}
-    if (!f.date || f.date < nextDate()) e.date = 'Choose a future date'
-    if (!availableSlots.includes(f.slot)) e.slot = 'That time is no longer available. Choose another slot.'
+    const bookingDate = f.mode === 'instant' ? nextDate() : f.date
+    const bookingSlot = f.mode === 'instant' ? availableSlots[0] : f.slot
+    if (f.mode !== 'instant' && (!f.date || f.date < nextDate())) e.date = 'Choose a future date'
+    if (!bookingSlot || !availableSlots.includes(bookingSlot)) e.slot = 'That time is no longer available. Choose another slot.'
     if (!f.address.trim() || f.address.trim().length < 8) e.address = 'Add the service address (at least 8 characters)'
     if (f.notes.trim().length > 500) e.notes = 'Keep notes under 500 characters'
     setErrs(e); if (Object.keys(e).length) return
     const id = `BKG-${Date.now().toString().slice(-6)}`
-    const booking = { id, vendorId: v.id, listingId: l.id, date: dateLabel(f.date), slot: f.slot, status: 'requested', customer: me.name || ME_NAME, address: f.address.trim(), notes: f.notes.trim(), total: l.price, paymentTerms: 'To be agreed directly with vendor; VendorVerse does not collect service payment.', history: [{ s: 'requested', at: stamp(), note: 'Customer requested a preferred slot' }] }
+    const booking = { id, vendorId: v.id, listingId: l.id, bookingType: f.mode, recurrence: f.mode === 'recurring' ? f.repeat : undefined, date: dateLabel(bookingDate), slot: bookingSlot, status: 'requested', customer: me.name || ME_NAME, address: f.address.trim(), notes: f.notes.trim(), total: l.price, paymentTerms: 'To be agreed directly with vendor; VendorVerse does not collect service payment.', history: [{ s: 'requested', at: stamp(), note: f.mode === 'instant' ? 'Customer requested an instant service slot' : f.mode === 'recurring' ? `Customer requested recurring service · ${f.repeat}` : 'Customer requested a scheduled preferred slot' }] }
     setBookings((all) => [booking, ...all])
     notify('vendor', 'New service booking request', `${id} · ${l.title} · ${booking.date}, ${booking.slot}`, 'booking')
-    toast('Booking request sent. The vendor will confirm or decline the preferred time.')
+    toast(f.mode === 'instant' ? 'Instant service request sent' : f.mode === 'recurring' ? 'Recurring service request sent' : 'Booking request sent. The vendor will confirm or decline the preferred time.')
     nav.replace('c_booking', { id })
   }
   return <Screen title="Request a service" subtitle={v.name} footer={<Button full size="lg" icon={CalendarCheck} onClick={submit}>Send booking request</Button>}>
     <Card><p className="text-sm font-bold">{l.title}</p><p className="mt-1 text-xs text-ink-500">{l.duration} min · Indicative price {fmt(l.price)} · final price agreed with vendor</p></Card>
-    <div className="flex gap-3"><Input label="Preferred date" required type="date" min={nextDate()} value={f.date} onChange={(e) => { const date = e.target.value; const occupied = bookings.filter((b) => b.vendorId === v.id && b.date === dateLabel(date) && ['requested', 'accepted', 'change_requested', 'in_progress'].includes(b.status)).map((b) => b.slot); const first = SLOTS.find((slot) => !occupied.includes(slot)) || ''; setF({ ...f, date, slot: occupied.includes(f.slot) ? first : f.slot }); setErrs({ ...errs, date: '', slot: '' }) }} error={errs.date} /><Select label="Preferred time" value={f.slot} onChange={(e) => { setF({ ...f, slot: e.target.value }); setErrs({ ...errs, slot: '' }) }} options={availableSlots.length ? availableSlots : [{ value: '', label: 'No times available' }]} error={errs.slot} /></div>
+    <Segmented value={f.mode} onChange={(mode) => setF({ ...f, mode })} options={[{ id: 'instant', label: 'Instant' }, { id: 'scheduled', label: 'Scheduled' }, { id: 'recurring', label: 'Recurring' }]} />
+    {f.mode === 'instant' && <Banner tone="teal" title="Instant service">The next available slot will be requested immediately from the provider.</Banner>}
+    {f.mode !== 'instant' && <div className="flex gap-3"><Input label="Preferred date" required type="date" min={nextDate()} value={f.date} onChange={(e) => { const date = e.target.value; const occupied = bookings.filter((b) => b.vendorId === v.id && b.date === dateLabel(date) && ['requested', 'accepted', 'change_requested', 'in_progress'].includes(b.status)).map((b) => b.slot); const first = SLOTS.find((slot) => !occupied.includes(slot)) || ''; setF({ ...f, date, slot: occupied.includes(f.slot) ? first : f.slot }); setErrs({ ...errs, date: '', slot: '' }) }} error={errs.date} /><Select label="Preferred time" value={f.slot} onChange={(e) => { setF({ ...f, slot: e.target.value }); setErrs({ ...errs, slot: '' }) }} options={availableSlots.length ? availableSlots : [{ value: '', label: 'No times available' }]} error={errs.slot} /></div>}
+    {f.mode === 'recurring' && <Select label="Repeat schedule" value={f.repeat} onChange={(e) => setF({ ...f, repeat: e.target.value })} options={['Weekly · 4 visits', 'Fortnightly · 3 visits', 'Monthly · 6 visits']} />}
     {!availableSlots.length && <Banner tone="amber">No preferred times are open on this date. Select another date.</Banner>}
     <Input label="Service address" required textarea rows={2} placeholder="Full address, area and access details" value={f.address} onChange={(e) => { setF({ ...f, address: e.target.value }); setErrs({ ...errs, address: '' }) }} error={errs.address} />
     <Input label="What should the vendor know?" textarea rows={3} placeholder="Describe the work or access requirements" value={f.notes} onChange={(e) => { setF({ ...f, notes: e.target.value }); setErrs({ ...errs, notes: '' }) }} error={errs.notes} />
@@ -153,7 +158,7 @@ export function BookingDetail({ params = {} }) {
   }
   const acceptChange = () => { update('accepted', 'Vendor accepted the proposed slot', { date: b.proposedDate, slot: b.proposedSlot, proposedDate: undefined, proposedSlot: undefined }); }
   return <Screen title={b.id} right={<StatusBadge s={b.status} className="mr-2" />} overlay={<Sheet open={change} onClose={() => setChange(false)} title="Request a booking change" footer={<Button full onClick={propose}>Send change request</Button>}><div className="space-y-3"><Input label="New preferred date" type="date" min={nextDate()} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /><Select label="New preferred time" value={f.slot} onChange={(e) => setF({ ...f, slot: e.target.value })} options={SLOTS} /><Input label="Reason" required textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} /></div></Sheet>}>
-    <Card><div className="flex items-start gap-3"><Thumb tone={l?.tone || 'teal'} icon={CalendarCheck} size={48} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="font-bold">{l?.title || 'Service booking'}</p><p className="mt-1 text-sm text-ink-500">{v?.name || 'Vendor'} · {b.date} at {b.slot}</p></div></div><div className="mt-4"><KV rows={[["Booking status", b.status.replaceAll('_', ' ')], ['Address', b.address], ['Customer', b.customer], ['Indicative amount', fmt(b.total || 0)]]} /></div></Card>
+    <Card><div className="flex items-start gap-3"><Thumb tone={l?.tone || 'teal'} icon={CalendarCheck} size={48} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="font-bold">{l?.title || 'Service booking'}</p><p className="mt-1 text-sm text-ink-500">{v?.name || 'Vendor'} · {b.date} at {b.slot}</p></div></div><div className="mt-4"><KV rows={[["Booking status", b.status.replaceAll('_', ' ')], ['Journey', b.bookingType === 'instant' ? 'Instant service' : b.bookingType === 'recurring' ? `Recurring · ${b.recurrence}` : 'Scheduled service'], ['Address', b.address], ['Customer', b.customer], ['Indicative amount', fmt(b.total || 0)]]} /></div></Card>
     {b.notes && <Card><p className="text-xs font-bold uppercase tracking-wide text-ink-400">Service notes</p><p className="mt-1 text-sm text-ink-700">{b.notes}</p></Card>}
     {b.changeNote && <Banner tone="amber" title="Change requested">{b.changeNote}{b.proposedDate ? ` · ${b.proposedDate}, ${b.proposedSlot}` : ''}</Banner>}
     <Banner tone="blue" title="Payment is arranged directly">VendorVerse does not collect or settle payments for service bookings. Confirm the final price and terms with the other participant.</Banner>
@@ -161,11 +166,12 @@ export function BookingDetail({ params = {} }) {
     <div className="flex flex-wrap gap-2">
       {customer && ['accepted', 'change_requested'].includes(b.status) && <Button variant="secondary" onClick={() => setChange(true)}>Request change</Button>}
       {customer && ['requested', 'accepted', 'change_requested'].includes(b.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by customer')}>Cancel request</Button>}
+      {customer && ['accepted', 'in_progress'].includes(b.status) && <Button variant="dangerSoft" onClick={() => update('payment_failed', 'Demo service payment failed')}>Payment failed</Button>}
       {!customer && b.status === 'requested' && <><Button onClick={() => update('accepted', 'Vendor confirmed the requested slot')}>Accept request</Button><Button variant="danger" onClick={() => update('declined', 'Vendor declined the request')}>Decline</Button></>}
       {!customer && b.status === 'change_requested' && <><Button onClick={acceptChange}>Accept new time</Button><Button variant="secondary" onClick={() => update('accepted', 'Vendor could not accept the requested change', { proposedDate: undefined, proposedSlot: undefined })}>Keep original time</Button></>}
       {!customer && b.status === 'accepted' && <Button onClick={() => update('in_progress', 'Vendor marked service in progress')}>Start service</Button>}
       {!customer && b.status === 'in_progress' && <Button onClick={() => update('completed', 'Vendor marked service complete')}>Mark complete</Button>}
-      {customer && b.status === 'completed' && <><Button onClick={() => update('closed', 'Customer confirmed completion')}>Confirm completion</Button><Button variant="secondary" onClick={() => nav.go('c_issue_new', { bookingId: b.id })}>Report a problem</Button><Button variant="soft" onClick={() => nav.go('c_review', { vendorId: b.vendorId, bookingId: b.id })}>Leave a review</Button></>}
+      {customer && b.status === 'completed' && <><Button onClick={() => update('closed', 'Customer confirmed completion')}>Confirm completion</Button><Button variant="secondary" onClick={() => { update('disputed', 'Customer opened a dispute'); nav.go('c_issue_new', { bookingId: b.id }) }}>Report a problem</Button><Button variant="soft" onClick={() => nav.go('c_review', { vendorId: b.vendorId, bookingId: b.id })}>Leave a review</Button></>}
       <Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Messages</Button>
     </div>
   </Screen>
@@ -208,7 +214,7 @@ export function OrderNew({ params = {} }) {
   </Screen>
 }
 
-const ORDER_STEPS = [['placed', 'Purchase order created'], ['confirmed', 'Supplier accepted'], ['packed', 'Processing'], ['shipped', 'Shipped'], ['delivered', 'Delivered'], ['completed', 'Completed']]
+const ORDER_STEPS = [['placed', 'Purchase order created'], ['payment_confirmed', 'Payment / terms confirmed'], ['payment_failed', 'Payment failed'], ['confirmed', 'Supplier accepted'], ['packed', 'Processing'], ['shipped', 'Shipped'], ['delivery_exception', 'Delivery exception'], ['delivered', 'Delivered'], ['disputed', 'Disputed'], ['completed', 'Completed']]
 export function OrderDetail({ params = {} }) {
   const nav = useNav()
   const { me, orders, patchOrder, listings, vendor, notify, toast, stamp } = useApp()
@@ -219,10 +225,11 @@ export function OrderDetail({ params = {} }) {
   const isBuyer = o.customer === me.name || me.role === 'customer'
   const next = { placed: ['confirmed', 'Supplier accepted'], confirmed: ['packed', 'Order processing'], packed: ['shipped', 'Order shipped'], shipped: ['delivered', 'Delivery marked received'], delivered: ['completed', 'Order completed'] }[o.status]
   const update = (status, note, extra = {}) => { patchOrder(o.id, (x) => ({ ...x, ...extra, status, history: [...(x.history || []), { s: status, at: stamp(), note }] })); notify(isSupplier ? 'customer' : 'vendor', `Order ${status}`, `${o.id} · ${note}`, 'order'); toast(`Order ${status.replaceAll('_', ' ')}`) }
+  const updatePayment = (pay, note) => { patchOrder(o.id, (x) => ({ ...x, pay, history: [...(x.history || []), { s: pay === 'paid' ? 'payment_confirmed' : 'payment_failed', at: stamp(), note }] })); notify('vendor', `Payment ${pay === 'paid' ? 'confirmed' : 'failed'}`, `${o.id} · ${note}`, 'payment'); toast(note, pay === 'paid' ? 'ok' : 'warn') }
   return <Screen title={o.id} right={<StatusBadge s={o.status} className="mr-2" />}>
-    <Card><div className="flex items-center gap-3"><Thumb tone={l?.tone || 'teal'} icon={Package} size={52} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="text-xs text-ink-500">{vendor(o.vendorId)?.name || 'Supplier'} · {o.qty} {l?.unit || 'units'}</p></div></div><div className="mt-4"><KV rows={[['Buyer', o.customer], ['Delivery', o.address], ['Commercial total', fmt(o.total || 0)], ['Payment', o.pay === 'paid' ? 'Demo payment captured' : 'Terms pending']]} /></div></Card>
+    <Card><div className="flex items-center gap-3"><Thumb tone={l?.tone || 'teal'} icon={Package} size={52} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="text-xs text-ink-500">{vendor(o.vendorId)?.name || 'Supplier'} · {o.qty} {l?.unit || 'units'}</p></div></div><div className="mt-4"><KV rows={[['Buyer', o.customer], ['Delivery', o.address], ['Commercial total', fmt(o.total || 0)], ['Payment', o.pay === 'paid' ? 'Demo payment captured' : o.pay === 'terms_confirmed' ? 'Terms confirmed' : o.pay === 'refund_pending' ? 'Refund pending' : o.pay === 'terms_pending' ? 'Terms pending' : o.pay]]} /></div></Card>
     <Card><Timeline steps={(o.history || []).map((h) => ({ label: ORDER_STEPS.find((x) => x[0] === h.s)?.[1] || h.s, at: h.at, note: h.note, done: true }))} /></Card>
-    <div className="flex flex-wrap gap-2">{isBuyer && ['placed', 'confirmed'].includes(o.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by buyer', { pay: o.pay === 'paid' ? 'refund_pending' : o.pay })}>Cancel order</Button>}{isSupplier && next && <Button onClick={() => update(next[0], next[1])}>{next[1]}</Button>}{isBuyer && o.status === 'delivered' && <Button onClick={() => update('completed', 'Buyer confirmed delivery')}>Confirm delivery</Button>}<Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Message supplier</Button></div>
+    <div className="flex flex-wrap gap-2">{isBuyer && o.pay === 'terms_pending' && ['placed', 'confirmed'].includes(o.status) && <><Button onClick={() => updatePayment('terms_confirmed', 'Commercial terms confirmed by buyer')}>Confirm payment / terms</Button><Button variant="dangerSoft" onClick={() => update('payment_failed', 'Demo purchase payment failed')}>Payment failed</Button></>}{isBuyer && ['placed', 'confirmed'].includes(o.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by buyer', { pay: o.pay === 'paid' ? 'refund_pending' : o.pay })}>Cancel order</Button>}{isSupplier && o.status === 'placed' && <Button variant="dangerSoft" onClick={() => update('rejected', 'Supplier rejected the purchase order')}>Reject order</Button>}{isSupplier && next && <Button onClick={() => update(next[0], next[1])}>{next[1]}</Button>}{isBuyer && o.status === 'shipped' && <Button variant="dangerSoft" onClick={() => update('delivery_exception', 'Buyer reported a delivery exception')}>Delivery exception</Button>}{isBuyer && o.status === 'delivered' && <><Button onClick={() => update('completed', 'Buyer confirmed delivery')}>Confirm delivery</Button><Button variant="dangerSoft" onClick={() => update('disputed', 'Buyer disputed the delivered order')}>Dispute order</Button></>}<Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Message supplier</Button></div>
     {o.status === 'cancelled' && <Banner tone="amber" title="Cancellation recorded">Refund or settlement status: {o.pay || 'pending'}.</Banner>}
   </Screen>
 }
@@ -237,12 +244,13 @@ export function RfqDetail({ params }) {
   const [msg, setMsg] = useState('')
   const [acc, setAcc] = useState(null)
   const [hist, setHist] = useState(null)
+  const setRfqState = (status, note) => { patchRfq(r.id, (x) => ({ status, history: [...x.history, { s: status, at: stamp(), note }] })); toast(note) }
   const best = r.quotes.length ? Math.min(...r.quotes.map((q) => q.amount)) : 0
   const fast = r.quotes.length ? Math.min(...r.quotes.map((q) => q.lead)) : 0
   const sorted = [...r.quotes].sort((a, b) => a.amount - b.amount)
   const accepted = r.quotes.find((q) => q.status === 'accepted')
   const accept = () => {
-    if (!acc || !['open', 'quoted'].includes(r.status) || acc.status === 'rejected' || dateExpired(acc.validity)) { toast('This quotation is no longer available. Refresh and choose a current quote.', 'warn'); setAcc(null); return }
+    if (!acc || ['accepted', 'closed', 'withdrawn', 'expired', 'no_quotes'].includes(r.status) || acc.status === 'rejected' || dateExpired(acc.validity)) { toast('This quotation is no longer available. Refresh and choose a current quote.', 'warn'); setAcc(null); return }
     const acceptedTerms = { quoteId: acc.id, vendorId: acc.vendorId, amount: acc.amount, lead: acc.lead, validity: acc.validity, notes: acc.notes, acceptedAt: stamp() }
     patchRfq(r.id, (x) => {
       if (!['open', 'quoted'].includes(x.status) || !x.quotes.some((q) => q.id === acc.id && q.status !== 'rejected')) return x
@@ -281,6 +289,7 @@ export function RfqDetail({ params }) {
         <p className="text-base font-bold leading-snug">{r.title}</p>
         <div className="mt-3 grid grid-cols-2 gap-3 text-xs"><Meta icon={Package}>{r.qty}</Meta><Meta icon={CircleDollarSign}>{r.budget}</Meta><Meta icon={Clock}>Quotes by {r.deadline}</Meta><Meta icon={Store}>{cat(r.cat).name}</Meta></div>
       </Card>
+      {!accepted && !['closed', 'withdrawn', 'expired'].includes(r.status) && <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => setRfqState('withdrawn', 'RFQ withdrawn by buyer')}>Withdraw RFQ</Button>{!r.quotes.length && <Button size="sm" variant="soft" onClick={() => setRfqState('no_quotes', 'No supplier quotations received')}>Mark no quotes</Button>}</div>}
       {accepted && (
         <Banner tone="green" title={`Accepted: ${vendor(accepted.vendorId).name}`} action={<div className="flex gap-2"><Button size="sm" variant="secondary" icon={MessageCircle} onClick={() => nav.go('chat', { vendorId: accepted.vendorId })}>Message vendor</Button><Button size="sm" onClick={() => nav.go('c_order_new', { rfqId: r.id })}>Create PO</Button></div>}>Accepted terms saved: {fmt((r.acceptedTerms || accepted).amount)} · { (r.acceptedTerms || accepted).lead } days · valid until {(r.acceptedTerms || accepted).validity}. Continue to a purchase order for supplier fulfilment.</Banner>
       )}
@@ -288,7 +297,7 @@ export function RfqDetail({ params }) {
       {tab === 'quotes' && (
         <div className="space-y-3">
           {r.quotes.length === 0 && <EmptyState icon={Clock} title="Waiting for quotes" body="Matching vendors have been notified. You will get an alert for each quotation." />}
-          {r.quotes.length > 1 && <Button full variant="soft" icon={GitCompare} onClick={() => setCmp(!cmp)}>{cmp ? 'Hide comparison' : 'Compare quotations'}</Button>}
+          {r.quotes.length > 1 && <Button full variant="soft" icon={GitCompare} onClick={() => { const next = !cmp; setCmp(next); if (next && !['accepted', 'closed'].includes(r.status)) setRfqState('comparing', 'Quotations are being compared') }}>{cmp ? 'Hide comparison' : 'Compare quotations'}</Button>}
           {cmp && (
             <Card pad={false} className="overflow-x-auto no-scrollbar">
               <table className="w-full min-w-[320px] text-left text-xs">
@@ -311,8 +320,8 @@ export function RfqDetail({ params }) {
                 <p className="mt-2 rounded-xl bg-ink-50 p-2.5 text-[13px] text-ink-600">{q.notes}</p>
                 {q.history.length > 1 && <button onClick={() => setHist(q)} className="mt-2 text-xs font-bold text-brand-700">Revised {q.history.length - 1}× — see history</button>}
                 {r.chat.filter((c) => c.vendorId === q.vendorId).map((c, i) => <p key={i} className={cx('mt-2 rounded-xl p-2.5 text-xs', c.from === 'me' ? 'bg-brand-50 text-brand-900' : 'bg-ink-100 text-ink-700')}><b>{c.from === 'me' ? 'You' : v.name.split(' ')[0]}:</b> {c.text}</p>)}
-                {r.status !== 'accepted' && r.status !== 'closed' && q.status !== 'rejected' && (
-                  <div className="mt-3 flex gap-2"><Button variant="secondary" size="sm" className="flex-1" onClick={() => setAsk(q)}>Ask / negotiate</Button><Button disabled={dateExpired(q.validity)} size="sm" className="flex-1" onClick={() => setAcc(q)}>{dateExpired(q.validity) ? 'Quote expired' : 'Accept quote'}</Button></div>
+                {!['accepted', 'closed', 'withdrawn', 'expired', 'no_quotes'].includes(r.status) && q.status !== 'rejected' && (
+                  <div className="mt-3 flex gap-2"><Button variant="secondary" size="sm" className="flex-1" onClick={() => { setRfqState('negotiating', 'Negotiation started with supplier'); setAsk(q) }}>Ask / negotiate</Button><Button disabled={dateExpired(q.validity)} size="sm" className="flex-1" onClick={() => setAcc(q)}>{dateExpired(q.validity) ? 'Quote expired' : 'Accept quote'}</Button></div>
                 )}
               </Card>
             )
@@ -326,7 +335,7 @@ export function RfqDetail({ params }) {
           {r.files.length > 0 && <Section title="Attachments"><div className="space-y-2">{r.files.map((f) => <div key={f} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-inset ring-ink-200"><FileText size={18} className="text-brand-600" /><span className="flex-1 truncate text-sm font-medium">{f}</span><Download size={16} className="text-ink-400" /></div>)}</div></Section>}
         </div>
       )}
-      {tab === 'history' && <Card><Timeline steps={r.history.map((h) => ({ label: h.s === 'open' ? 'RFQ published' : h.s === 'quoted' ? 'Quotations received' : h.s === 'accepted' ? 'Quotation accepted' : h.s, at: h.at, note: h.note, done: true }))} /></Card>}
+      {tab === 'history' && <Card><Timeline steps={r.history.map((h) => ({ label: h.s === 'open' ? 'RFQ published' : h.s === 'submitted' ? 'Sent to vendors' : h.s === 'quoted' ? 'Quotations received' : h.s === 'comparing' ? 'Comparing quotations' : h.s === 'negotiating' ? 'Negotiating terms' : h.s === 'accepted' ? 'Quotation accepted' : h.s, at: h.at, note: h.note, done: true }))} /></Card>}
     </Screen>
   )
 }

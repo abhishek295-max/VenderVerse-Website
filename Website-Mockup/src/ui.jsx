@@ -52,12 +52,12 @@ export const STATUS = {
   removed: ['Removed', 'gray'], verified: ['Verified', 'green'], missing: ['Missing', 'red'],
   // orders
   placed: ['Placed', 'blue'], confirmed: ['Confirmed', 'teal'], packed: ['Packed', 'purple'], shipped: ['Shipped', 'purple'],
-  delivered: ['Delivered', 'green'], cancelled: ['Cancelled', 'gray'], return_requested: ['Return requested', 'amber'], returned: ['Returned', 'gray'], refunded: ['Refunded', 'gray'],
+  delivered: ['Delivered', 'green'], cancelled: ['Cancelled', 'gray'], rejected: ['Rejected', 'red'], payment_confirmed: ['Payment / terms confirmed', 'teal'], payment_failed: ['Payment failed', 'red'], delivery_exception: ['Delivery exception', 'amber'], disputed: ['Disputed', 'red'], return_requested: ['Return requested', 'amber'], returned: ['Returned', 'gray'], refunded: ['Refunded', 'gray'],
   // bookings
   requested: ['Requested', 'blue'], accepted: ['Accepted', 'teal'], declined: ['Declined', 'red'], in_progress: ['In progress', 'purple'],
-  completed: ['Completed', 'green'], reschedule: ['Reschedule requested', 'amber'],
+  completed: ['Completed', 'green'], payment_failed: ['Payment failed', 'red'], disputed: ['Disputed', 'red'], reschedule: ['Reschedule requested', 'amber'],
   // rfq
-  open: ['Open', 'blue'], quoted: ['Quotes received', 'teal'], closed: ['Closed', 'gray'], revised: ['Revised', 'purple'],
+  open: ['Open', 'blue'], submitted: ['Submitted to vendors', 'blue'], quoted: ['Quotes received', 'teal'], comparing: ['Comparing', 'purple'], negotiating: ['Negotiating', 'amber'], withdrawn: ['Withdrawn', 'gray'], expired: ['Expired', 'gray'], no_quotes: ['No quotes', 'amber'], closed: ['Closed', 'gray'], revised: ['Revised', 'purple'],
   // payments
   paid: ['Paid', 'green'], unpaid: ['Unpaid', 'amber'], failed: ['Failed', 'red'], cod: ['Pay on delivery', 'gray'], settled: ['Settled', 'green'], processing: ['Processing', 'blue'],
   // disputes
