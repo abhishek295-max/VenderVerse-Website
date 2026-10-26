@@ -46,7 +46,7 @@ export const SCREENS = Object.fromEntries([
 
   // ---- vendor ----
   R('v_dash', V.VendorDashboard, 'vendor', 'Dashboard', ['FR-03', 'FR-08', 'FR-10'], { tab: true, bar: 'ink' }),
-  R('v_register', V.VendorRegister, 'vendor', 'Registration wizard', ['FR-03']),
+  R('v_register', V.VendorRegister, 'shared', 'Vendor account creation', ['FR-03']),
   R('v_verify', V.VendorVerify, 'vendor', 'Verification status', ['FR-03', 'FR-15']),
   R('v_listings', V.VendorListings, 'vendor', 'My listings', ['FR-04'], { tab: true }),
   R('v_listing_edit', V.ListingEdit, 'vendor', 'Add / edit listing', ['FR-04'], { defaultParams: { id: 'l1' } }),

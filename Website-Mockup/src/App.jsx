@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react'
+import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react'
 import { AppProvider, useApp } from './store.jsx'
 import { canOpenRoute } from './services/authorization.js'
 import { NavProvider, useNav } from './nav.jsx'
@@ -208,7 +208,7 @@ function SpecPanel() {
 
 function WebHeader({ onMenu }) {
   const nav = useNav()
-  const { lang, setLang, locale, setLocale, me, t } = useApp()
+  const { lang, setLang, locale, setLocale, me, setMe, t } = useApp()
   const screen = SCREENS[nav.id] || SCREENS.welcome
   const tabs = TABS[me.role || 'customer'] || TABS.customer
   const activeTab = nav.stack.slice().reverse().map((entry) => tabs.find((tab) => tab.id === entry.id)).find(Boolean)?.id || nav.id
@@ -221,6 +221,7 @@ function WebHeader({ onMenu }) {
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>
+          {me.loggedIn && me.hasVendorAccount && <button onClick={() => { const nextRole = me.role === 'vendor' ? 'customer' : 'vendor'; setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : (me.vendorName || me.name), buyerMode: false }); nav.reset(nextRole === 'vendor' ? 'v_dash' : 'c_home') }} className="flex h-10 items-center gap-1.5 rounded-xl bg-brand-50 px-2.5 text-xs font-bold text-brand-800 hover:bg-brand-100" title={me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor'}><ArrowLeftRight size={16} /><span className="hidden sm:inline">{me.role === 'vendor' ? 'Customer' : 'Vendor'}</span></button>}
           <label className="hidden sm:block"><span className="sr-only">Country or region</span><select value={locale.country} onChange={(e) => { const country = e.target.value; const defaults = { IN: { currency: 'INR', timeZone: 'Asia/Kolkata' }, AE: { currency: 'AED', timeZone: 'Asia/Dubai' }, GB: { currency: 'GBP', timeZone: 'Europe/London' }, US: { currency: 'USD', timeZone: 'America/New_York' } }; setLocale({ ...locale, country, ...defaults[country] }) }} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="IN">India</option><option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="US">United States</option></select></label>
           <label className="hidden lg:block"><span className="sr-only">Currency</span><select value={locale.currency} onChange={(e) => setLocale({ ...locale, currency: e.target.value })} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="INR">INR</option><option value="AED">AED</option><option value="GBP">GBP</option><option value="USD">USD</option></select></label>
           <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>

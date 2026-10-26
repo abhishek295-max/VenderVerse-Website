@@ -61,7 +61,7 @@ const DOCS = ['GST Registration Certificate', 'PAN Card', 'Shop & Establishment 
 export function VendorRegister() {
   const nav = useNav()
   const { me, setMe, vendors, setVendors, notify, toast, stamp } = useApp()
-  const existing = vendors.find((v) => v.id === me.vendorId)
+  const existing = me.role === 'vendor' ? vendors.find((v) => v.id === me.vendorId) : null
   const [step, setStep] = useState(0)
   const [f, setF] = useState({ name: me.biz || existing?.name || '', owner: me.name || '', vendorType: existing?.vendorType || 'service_provider', cat: 'elec', gstin: '', pan: '', email: '', years: '2020', areas: ['Jaipur'], branches: ['Main outlet — Jaipur'], certifications: '' })
   const [br, setBr] = useState('')
@@ -90,10 +90,11 @@ export function VendorRegister() {
     if (step < 3) return setStep(step + 1)
     const rec = { id: 'v-new', name: f.name, owner: f.owner, vendorType: f.vendorType, cat: f.cat, city: f.areas[0], areas: f.areas, branches: f.branches.length, rating: 0, reviews: 0, status: 'submitted', tone: cat(f.cat).tone, since: +f.years, gstin: f.gstin.toUpperCase(), phone: '+91 98290 00099', email: f.email, plan: 'Starter', certifications: f.certifications, docs: DOCS.map((d) => ({ name: d, status: 'pending' })), history: [{ s: 'submitted', at: stamp(), by: f.owner }] }
     setVendors((vs) => [rec, ...vs.filter((x) => x.id !== 'v-new')])
-    setMe({ ...me, vendorId: 'v-new' })
+    const fromCustomer = me.role === 'customer'
+    setMe({ ...me, role: fromCustomer ? 'vendor' : me.role, loggedIn: true, guest: false, vendorId: 'v-new', vendorName: f.name, customerName: fromCustomer ? me.name : me.customerName, hasVendorAccount: true, buyerMode: false })
     notify('admin', 'Vendor awaiting review', `${f.name} submitted for verification.`, 'onboarding')
     toast('Submitted for verification')
-    nav.reset('v_verify')
+    nav.reset(fromCustomer ? 'v_dash' : 'v_verify')
   }
   return (
     <Screen title="Vendor registration" subtitle={`Step ${step + 1} of 4`} back={step > 0} right={step === 0 ? null : null} footer={<div className="flex gap-2">{step > 0 && <Button variant="secondary" onClick={() => setStep(step - 1)}>Back</Button>}<Button className="flex-1" size="lg" onClick={next}>{step === 3 ? 'Submit for verification' : 'Continue'}</Button></div>}>
