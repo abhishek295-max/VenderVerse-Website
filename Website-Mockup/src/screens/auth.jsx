@@ -91,7 +91,7 @@ export function Welcome() {
 const normalizePhone = (value = '') => String(value).replace(/\D/g, '').slice(-10)
 const isPhone = (value) => normalizePhone(value).length === 10
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-const ACCESS_OTP = { customer: '111111', vendor: '222222', agent: '020905', admin: '261205' }
+const ACCESS_OTP = { customer: '111111', vendor: '222222', business: '121212', agent: '020905', admin: '261205' }
 const ADMIN_MFA = '261205'
 
 export function Login({ params = {} }) {
@@ -217,7 +217,7 @@ export function Otp({ params }) {
             <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { const nextCode = e.target.value.replace(/\D/g, '').slice(0, 6); setCode(nextCode); setErr(''); if (nextCode.length === 6) window.setTimeout(() => verify(nextCode), 0) }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
           </div>
           {err && <p className="text-sm font-medium text-red-600" role="alert">{err}</p>}
-          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role} OTP` : 'authenticator code'}. <button type="button" className="font-bold underline" onClick={() => { setCode(target); setErr(''); window.setTimeout(() => verify(target), 0) }}>Auto-fill</button></Banner>
+          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role === 'business' ? 'Business / Company supplier' : role} OTP` : 'authenticator code'}. <button type="button" className="font-bold underline" onClick={() => { setCode(target); setErr(''); window.setTimeout(() => verify(target), 0) }}>Auto-fill</button></Banner>
           <Button full size="lg" onClick={verify}>{step === 0 && role === 'admin' ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
           {step === 0 && (
             <p className="text-center text-sm text-ink-500">

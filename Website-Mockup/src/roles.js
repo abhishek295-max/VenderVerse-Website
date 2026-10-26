@@ -6,11 +6,13 @@ import {
 export const ROLES = [
   { id: 'customer', label: 'Customer', short: 'Customer' },
   { id: 'vendor', label: 'Vendor / Supplier', short: 'Vendor' },
+  { id: 'business', label: 'Business / Company Supplier', short: 'Business' },
   { id: 'agent', label: 'Sales Agent', short: 'Agent' },
   { id: 'admin', label: 'Super Admin', short: 'Admin' },
 ]
 
 export const HOME = { customer: 'c_home', vendor: 'v_dash', agent: 'a_home', admin: 'ad_dash' }
+HOME.business = 'v_dash'
 
 /* bottom navigation per role — `k` is a dictionary key for Hindi/English labels */
 export const TABS = {
@@ -22,6 +24,13 @@ export const TABS = {
     { id: 'c_profile', k: 'profile', icon: User },
   ],
   vendor: [
+    { id: 'v_dash', k: 'dashboard', icon: LayoutDashboard },
+    { id: 'v_work', k: 'quotes', icon: Briefcase },
+    { id: 'v_listings', k: 'listings', icon: Package },
+    { id: 'messages', k: 'messages', icon: MessageCircle },
+    { id: 'v_more', k: 'more', icon: MoreHorizontal },
+  ],
+  business: [
     { id: 'v_dash', k: 'dashboard', icon: LayoutDashboard },
     { id: 'v_work', k: 'quotes', icon: Briefcase },
     { id: 'v_listings', k: 'listings', icon: Package },

@@ -2,7 +2,7 @@ import {
   Zap, Hammer, Monitor, Printer, Wrench, Sparkles, UtensilsCrossed, Users,
 } from 'lucide-react'
 
-export const ME = { customer: 'Aarav Mehta', vendor: 'Rakesh Sharma', agent: 'Neha Verma', admin: 'Priya Nair' }
+export const ME = { customer: 'Aarav Mehta', vendor: 'Rakesh Sharma', business: 'Atlas Industrial Supply Co.', agent: 'Neha Verma', admin: 'Priya Nair' }
 
 /* ---------- categories (Super Admin managed – FR-04) ---------- */
 export const CATS = [

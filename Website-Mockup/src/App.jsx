@@ -49,7 +49,7 @@ function TabBar() {
   const tabs = TABS[me.role] || []
   if (!tabs.some((x) => x.id === nav.id)) return null
   const badge = (id) => {
-    if (id === 'messages') return (threads[me.role === 'vendor' ? 'vendor' : 'customer'] || []).reduce((s, x) => s + x.unread, 0)
+    if (id === 'messages') return (threads[me.role === 'vendor' || me.role === 'business' ? 'vendor' : 'customer'] || []).reduce((s, x) => s + x.unread, 0)
     if (id === 'ad_approvals') return vendors.filter((v) => v.status === 'submitted').length + listings.filter((l) => l.status === 'pending').length
     if (id === 'a_followups') return leads.filter((l) => l.next?.date && new Date(l.next.date) <= new Date('19 Oct 2026')).length
     return 0
@@ -90,7 +90,7 @@ function ScreenHost() {
   const C = reg.C
   const customerRoute = reg.role === 'customer' || (reg.role === 'shared' && me.role === 'customer')
   const vendorWorkspaceRoute = ['v_dash', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id)
-  const vendorMessagesRoute = nav.id === 'messages' && me.role === 'vendor'
+  const vendorMessagesRoute = nav.id === 'messages' && (me.role === 'vendor' || me.role === 'business')
   const agentWorkspaceRoute = ['a_home', 'a_leads', 'a_followups', 'a_earnings', 'a_profile'].includes(nav.id)
   const adminWorkspaceRoute = ['ad_dash', 'ad_approvals', 'ad_users', 'ad_reports', 'ad_more'].includes(nav.id)
   return (

@@ -27,7 +27,8 @@ const VENDOR_NAV = [
 
 function VendorSidebar({ active, vendor, collapsed, onToggle }) {
   const nav = useNav()
-  const { setMe } = useApp()
+  const { setMe, me } = useApp()
+  const businessSupplier = me.role === 'business'
   const logout = () => {
     setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
     nav.reset('c_home')
@@ -38,10 +39,10 @@ function VendorSidebar({ active, vendor, collapsed, onToggle }) {
       <button type="button" className="vv-sidebar-toggle" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={!collapsed} onClick={onToggle}>
         {collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}<span className="vv-sidebar-label">{collapsed ? 'Expand menu' : 'Collapse menu'}</span>
       </button>
-      <nav className="vv-vendor-nav" aria-label="Vendor workspace">
-        {VENDOR_NAV.map(([I, label, id]) => <button type="button" key={id} title={collapsed ? label : undefined} aria-current={active === id ? 'page' : undefined} className={cx('vv-vendor-nav-item', active === id && 'is-active')} onClick={() => nav.go(id)}><I size={19} /><span className="vv-sidebar-label">{label}</span></button>)}
+      <nav className="vv-vendor-nav" aria-label={businessSupplier ? 'Business supplier workspace' : 'Vendor workspace'}>
+        {VENDOR_NAV.map(([I, label, id]) => <button type="button" key={id} title={collapsed ? label : undefined} aria-current={active === id ? 'page' : undefined} className={cx('vv-vendor-nav-item', active === id && 'is-active')} onClick={() => nav.go(id)}><I size={19} /><span className="vv-sidebar-label">{businessSupplier && label === 'Quote requests' ? 'Vendor RFQs' : businessSupplier && label === 'Customer reviews' ? 'Buyer reviews' : label}</span></button>)}
       </nav>
-      <div className="vv-sidebar-business"><Thumb tone={vendor?.tone || 'teal'} icon={vendor ? cat(vendor.cat).icon : Store} size={38} round="rounded-xl" /><div className="vv-sidebar-label vv-business-copy"><b>{vendor?.name || 'Your business'}</b><small>{vendor?.status === 'approved' ? 'Verified vendor' : 'Vendor workspace'}</small></div></div>
+      <div className="vv-sidebar-business"><Thumb tone={vendor?.tone || 'teal'} icon={vendor ? cat(vendor.cat).icon : Store} size={38} round="rounded-xl" /><div className="vv-sidebar-label vv-business-copy"><b>{businessSupplier ? 'Business / Company' : vendor?.name || 'Your business'}</b><small>{businessSupplier ? 'Supplier workspace' : vendor?.status === 'approved' ? 'Verified vendor' : 'Vendor workspace'}</small></div></div>
       <button type="button" className="vv-vendor-nav-item vv-sidebar-logout" title={collapsed ? 'Log out' : undefined} onClick={logout}><LogOut size={19} /><span className="vv-sidebar-label">Log out</span></button>
     </aside>
   )
@@ -466,7 +467,7 @@ export function VendorDashboard() {
   const vid = me.vendorId
   const th = threads.vendor
   const unread = th.reduce((s, t) => s + t.unread, 0)
-  const toQuote = rfqs.filter((r) => v && r.cat === v.cat && !r.mine && r.status !== 'accepted' && !r.quotes.find((q) => q.vendorId === vid))
+  const toQuote = rfqs.filter((r) => v && (me.role === 'business' || r.cat === v.cat) && !r.mine && r.status !== 'accepted' && !r.quotes.find((q) => q.vendorId === vid))
   const mine = listings.filter((l) => l.vendorId === vid)
   const live = mine.filter((l) => l.status === 'approved').length
   const fix = mine.filter((l) => ['rejected', 'suspended'].includes(l.status))
@@ -484,7 +485,7 @@ export function VendorDashboard() {
         <main className="vv-vendor-content">
           <header className="vv-vendor-topbar">
             <div className="vv-vendor-mobile-brand"><span className="vv-vendor-mark">V</span><b>VendorVerse</b></div>
-            <div className="vv-vendor-page-title"><span>VENDOR WORKSPACE</span><h1>Dashboard</h1></div>
+            <div className="vv-vendor-page-title"><span>{me.role === 'business' ? 'BUSINESS SUPPLIER WORKSPACE' : 'VENDOR WORKSPACE'}</span><h1>{me.role === 'business' ? 'Supplier dashboard' : 'Dashboard'}</h1></div>
             <div className="vv-vendor-notifications [&_button]:text-ink-700"><NotifBell role="vendor" /></div>
           </header>
           <div className="vv-vendor-content-inner">
@@ -497,7 +498,7 @@ export function VendorDashboard() {
         {banner}
         <div className="grid grid-cols-2 gap-3">
           <Stat label="Unread messages" value={unread} icon={MessageCircle} tone="amber" onClick={() => nav.go('messages')} />
-          <Stat label="Quote requests" value={toQuote.length} icon={FileText} tone="violet" onClick={() => nav.go('v_work')} />
+          <Stat label={me.role === 'business' ? 'Vendor RFQs' : 'Quote requests'} value={toQuote.length} icon={FileText} tone="violet" onClick={() => nav.go('v_work')} />
           <Stat label="Live listings" value={live} icon={Package} tone="sky" onClick={() => nav.go('v_listings')} />
           <Stat label="Enquiries (7d)" value={v.status === 'approved' ? 18 : 0} icon={TrendingUp} tone="emerald" delta="+12%" onClick={() => nav.go('v_perf')} />
         </div>
@@ -533,7 +534,7 @@ export function VendorQuotes() {
   const v = useMyVendor()
   const [fl, setFl] = useState('todo')
   const [kind, setKind] = useState('rfqs')
-  const mr = rfqs.filter((r) => v && r.cat === v.cat && (!r.mine || r.buyerType === 'vendor') && r.buyerVendorId !== me.vendorId)
+  const mr = rfqs.filter((r) => v && (me.role === 'business' || r.cat === v.cat) && (!r.mine || r.buyerType === 'vendor') && r.buyerVendorId !== me.vendorId)
   const mine = (x) => x.quotes.find((q) => q.vendorId === me.vendorId)
   const list = mr.filter((x) => (fl === 'todo' ? !mine(x) && x.status !== 'accepted' : fl === 'active' ? mine(x) && x.status !== 'accepted' : x.status === 'accepted'))
   const myBookings = bookings.filter((b) => b.vendorId === me.vendorId)
@@ -542,7 +543,7 @@ export function VendorQuotes() {
     <VendorWorkspace>
     <Screen title="Quote requests" back={false}>
       <Segmented value={kind} onChange={(v) => { setKind(v); setFl('todo') }} options={[{ id: 'rfqs', label: 'Quote requests' }, { id: 'bookings', label: `Service bookings (${myBookings.length})` }]} />
-      <Banner tone="blue">{kind === 'rfqs' ? 'Customers post requirements here. Send your quotation, then continue the conversation in Messages.' : 'Review customer booking requests, confirm availability, and track service progress. Payment stays directly between you and the customer.'}</Banner>
+      <Banner tone="blue">{kind === 'rfqs' ? (me.role === 'business' ? 'Vendors submit bulk requirements here. Respond with your supplier quotation, MOQ, lead time and terms.' : 'Customers post requirements here. Send your quotation, then continue the conversation in Messages.') : 'Review customer booking requests, confirm availability, and track service progress. Payment stays directly between you and the customer.'}</Banner>
       <Chips scroll={false} value={fl} onChange={setFl} options={kind === 'rfqs' ? [{ id: 'todo', label: `To quote (${mr.filter((x) => !mine(x) && x.status !== 'accepted').length})` }, { id: 'active', label: 'Quoted' }, { id: 'done', label: 'Closed' }] : [{ id: 'todo', label: `Needs reply (${myBookings.filter((b) => ['requested', 'change_requested'].includes(b.status)).length})` }, { id: 'active', label: 'Upcoming' }, { id: 'done', label: 'Past' }]} />
       {kind === 'rfqs' ? <>
       <div className="vv-vendor-quote-grid space-y-2.5">
