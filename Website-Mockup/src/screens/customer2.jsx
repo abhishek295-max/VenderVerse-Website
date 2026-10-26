@@ -43,7 +43,8 @@ const BK_FLOW = [['requested', 'Request sent'], ['accepted', 'Accepted by vendor
 export function RfqNew({ params = {} }) {
   const nav = useNav()
   const { me, vendor, rfqs, setRfqs, notify, toast } = useApp()
-  const [f, setF] = useState({ title: params.title ? `Bulk quote: ${params.title}` : '', cats: [params.cat || 'elec'], qty: '', budget: '', deadline: dateAfterISO(7), country: 'India', state: 'Rajasthan', city: 'Jaipur', pincode: '', desc: '', invite: true, categoryBudgets: { [params.cat || 'elec']: '' } })
+  const targetVendor = params.vendorId ? vendor(params.vendorId) : null
+  const [f, setF] = useState({ title: params.title ? `Bulk quote: ${params.title}` : '', cats: [params.cat || 'elec'], qty: '', budget: '', deadline: dateAfterISO(7), country: 'India', state: 'Rajasthan', city: 'Jaipur', pincode: '', desc: '', invite: !params.vendorId, categoryBudgets: { [params.cat || 'elec']: '' } })
   const [files, setFiles] = useState([])
   const [errs, setErrs] = useState({})
   const set = (k) => (e) => { setF({ ...f, [k]: e?.target ? e.target.value : e }); setErrs({ ...errs, [k]: '' }) }
@@ -63,13 +64,13 @@ export function RfqNew({ params = {} }) {
     const [y, m, d] = f.deadline.split('-')
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
     const buyerName = me.role === 'vendor' ? (vendor(me.vendorId)?.name || me.name || 'Business buyer') : ME_NAME
-    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, customer: buyerName, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'submitted', created: '19 Oct 2026', history: [{ s: 'submitted', at: 'Just now', note: 'Sent to matching vendors' }], quotes: [], chat: [] }, ...r])
+    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, targetVendorId: params.vendorId || undefined, targetVendorName: targetVendor?.name, customer: buyerName, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'submitted', created: '19 Oct 2026', history: [{ s: 'submitted', at: 'Just now', note: 'Sent to matching vendors' }], quotes: [], chat: [] }, ...r])
     notify('vendor', me.role === 'vendor' ? 'Vendor buyer RFQ published' : 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
-    toast('RFQ sent to matching vendors')
+    toast(params.vendorId ? `RFQ sent to ${targetVendor?.name || 'selected supplier'}` : 'RFQ sent to matching vendors')
     nav.replace('c_rfq', { id })
   }
   return (
-    <Screen title="Request quotation" subtitle="Get quotes from verified vendors" footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
+    <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Get quotes from verified vendors'} footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
       <Input label="What do you need?" required placeholder="e.g. 200 LED panel lights for office" value={f.title} onChange={set('title')} error={errs.title} />
       <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Categories required</p><Chips multi value={f.cats} onChange={(cats) => { const categoryBudgets = { ...f.categoryBudgets }; cats.forEach((id) => { if (!(id in categoryBudgets)) categoryBudgets[id] = '' }); setF({ ...f, cats, categoryBudgets }); setErrs({ ...errs, cats: '' }) }} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />{errs.cats && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.cats}</p>}</div>
       {f.cats.length > 0 && <Card><p className="text-sm font-bold text-ink-900">Budget by category</p><p className="mt-1 text-xs text-ink-500">Allocate the total RFQ budget across selected categories.</p><div className="mt-3 space-y-2.5">{f.cats.map((id) => <Input key={id} label={cat(id).name} prefix="₹" placeholder="Amount" inputMode="numeric" value={f.categoryBudgets[id] || ''} onChange={(e) => setF({ ...f, categoryBudgets: { ...f.categoryBudgets, [id]: e.target.value } })} />)}</div></Card>}
@@ -84,7 +85,7 @@ export function RfqNew({ params = {} }) {
           <button onClick={() => setFiles([...files, ['Spec-sheet.pdf', 'Drawing.png', 'BOQ.xlsx'][files.length % 3]])} className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink-300 py-3.5 text-sm font-semibold text-ink-500"><Paperclip size={16} />Add file</button>
         </div>
       </div>
-      <Card><Toggle label="Send to all matching verified vendors" desc="Vendors in this category and location can respond" on={f.invite} onChange={(v) => setF({ ...f, invite: v })} /></Card>
+      {targetVendor ? <Banner tone="violet" title="Direct supplier request">This RFQ will appear in the selected supplier’s quote workspace. Other vendors will not receive it.</Banner> : <Card><Toggle label="Send to all matching verified vendors" desc="Vendors in this category and location can respond" on={f.invite} onChange={(v) => setF({ ...f, invite: v })} /></Card>}
     </Screen>
   )
 }

@@ -534,7 +534,7 @@ export function VendorQuotes() {
   const v = useMyVendor()
   const [fl, setFl] = useState('todo')
   const [kind, setKind] = useState('rfqs')
-  const mr = rfqs.filter((r) => v && (me.role === 'business' || r.cat === v.cat) && (!r.mine || r.buyerType === 'vendor') && r.buyerVendorId !== me.vendorId)
+  const mr = rfqs.filter((r) => v && (me.role === 'business' || r.cat === v.cat) && (!r.mine || r.buyerType === 'vendor') && r.buyerVendorId !== me.vendorId && (!r.targetVendorId || r.targetVendorId === me.vendorId))
   const mine = (x) => x.quotes.find((q) => q.vendorId === me.vendorId)
   const list = mr.filter((x) => (fl === 'todo' ? !mine(x) && x.status !== 'accepted' : fl === 'active' ? mine(x) && x.status !== 'accepted' : x.status === 'accepted'))
   const myBookings = bookings.filter((b) => b.vendorId === me.vendorId)

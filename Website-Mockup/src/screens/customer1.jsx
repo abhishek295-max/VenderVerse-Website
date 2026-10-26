@@ -350,7 +350,7 @@ export function ListingDetail({ params }) {
 
         <div className="grid grid-cols-2 gap-2.5">
           <Button variant={inCmp ? 'soft' : 'secondary'} icon={inCmp ? Check : GitCompare} onClick={() => { toggleCompare(l.id); toast(inCmp ? 'Removed from compare' : compare.length >= 3 ? 'You can compare up to 3 listings' : 'Added to compare') }}>{inCmp ? 'In compare' : 'Compare'}</Button>
-          <Button variant="secondary" icon={FileText} onClick={() => gate('Log in to request a quote') && nav.go('c_rfq_new', { cat: l.cat, title: l.title })}>Bulk quote</Button>
+          <Button variant="secondary" icon={FileText} onClick={() => gate('Log in to request a quote') && nav.go('c_rfq_new', { cat: l.cat, title: l.title, vendorId: v.id })}>Bulk quote</Button>
         </div>
         {inCmp && compare.length > 1 && <Button full variant="soft" onClick={() => nav.go('c_saved', { tab: 'compare' })}>View comparison ({compare.length})</Button>}
 
