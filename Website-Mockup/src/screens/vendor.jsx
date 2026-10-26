@@ -328,7 +328,8 @@ export function VendorRfq({ params }) {
       const quotes = q ? x.quotes.map((k) => (k.vendorId === me.vendorId ? { ...k, amount: +f.amount, lead: +f.lead, validity: `${d} ${mon} ${y}`, notes: f.notes, status: 'submitted', history: [...k.history, entry] } : k)) : [...x.quotes, { id: 'q' + Date.now(), vendorId: me.vendorId, amount: +f.amount, lead: +f.lead, validity: `${d} ${mon} ${y}`, notes: f.notes, status: 'submitted', history: [entry] }]
       return { status: 'quoted', quotes, history: [...x.history, { s: 'quoted', at: 'Just now', note: `${vendor(me.vendorId)?.name} ${q ? 'revised' : 'submitted'} a quotation` }] }
     })
-    if (r.mine) notify('customer', mine ? 'Quotation revised' : 'New quotation received', `${vendor(me.vendorId)?.name} quoted ${fmt(+f.amount)} for ${r.id}.`, 'rfq')
+    if (r.mine && r.buyerType === 'vendor') notify('vendor', mine ? 'Supplier quotation revised' : 'Supplier quotation received', `${vendor(me.vendorId)?.name} quoted ${fmt(+f.amount)} for ${r.id}.`, 'rfq')
+    else if (r.mine) notify('customer', mine ? 'Quotation revised' : 'New quotation received', `${vendor(me.vendorId)?.name} quoted ${fmt(+f.amount)} for ${r.id}.`, 'rfq')
     toast(mine ? 'Quotation revised' : 'Quotation submitted')
   }
   return (
@@ -530,7 +531,7 @@ export function VendorQuotes() {
   const v = useMyVendor()
   const [fl, setFl] = useState('todo')
   const [kind, setKind] = useState('rfqs')
-  const mr = rfqs.filter((r) => v && r.cat === v.cat && !r.mine)
+  const mr = rfqs.filter((r) => v && r.cat === v.cat && (!r.mine || r.buyerType === 'vendor') && r.buyerVendorId !== me.vendorId)
   const mine = (x) => x.quotes.find((q) => q.vendorId === me.vendorId)
   const list = mr.filter((x) => (fl === 'todo' ? !mine(x) && x.status !== 'accepted' : fl === 'active' ? mine(x) && x.status !== 'accepted' : x.status === 'accepted'))
   const myBookings = bookings.filter((b) => b.vendorId === me.vendorId)
@@ -572,6 +573,7 @@ export function VendorMore() {
       <div className="vv-vendor-more-body space-y-4 p-4">
         <Card onClick={() => nav.go('v_profile')} className="!p-4"><div className="flex items-center gap-3.5"><Thumb tone={v?.tone || 'teal'} icon={Store} size={56} /><div className="min-w-0 flex-1"><p className="truncate text-base font-extrabold">{v?.name || 'Your business'}</p><p className="text-sm text-ink-500">{me.name}</p><div className="mt-1.5">{v?.status === 'approved' ? <Badge tone="green"><ShieldCheck size={11} />Verified</Badge> : <StatusBadge s={v?.status || 'draft'} />}</div></div><ChevronRight size={18} className="text-ink-300" /></div></Card>
         <Group>
+          <ListRow icon={Package} tone="violet" title="Buy as a business" subtitle="Source materials from another vendor" onClick={() => { setMe({ ...me, buyerMode: true }); nav.go('c_explore', { mode: 'products' }) }} />
           <ListRow icon={ShieldCheck} tone="emerald" title="Verification" subtitle="Documents & status" onClick={() => nav.go('v_verify')} />
           <ListRow icon={Package} tone="sky" title="Purchase orders" subtitle="Supplier fulfilment & tracking" onClick={() => nav.go('v_orders')} />
           <ListRow icon={Star} tone="amber" title="Customer reviews" onClick={() => nav.go('v_reviews')} />

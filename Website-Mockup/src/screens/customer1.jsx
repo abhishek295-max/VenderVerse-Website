@@ -179,7 +179,7 @@ export function Category({ params }) {
 const DEFAULT_F = { min: '', max: '', stock: false, verified: false, city: 'Any', rating: 0, sort: 'relevance' }
 export function Explore({ params = {} }) {
   const nav = useNav()
-  const { listings, vendors, compare, toggleCompare } = useApp()
+  const { listings, vendors, compare, toggleCompare, me, setMe } = useApp()
   const [q, setQ] = useState(params.q || '')
   const [mode, setMode] = useState(params.mode || 'all')
   const [c, setC] = useState(params.cat || 'all')
@@ -237,6 +237,7 @@ export function Explore({ params = {} }) {
         </Sheet>
       }
     >
+      {me.role === 'vendor' && me.buyerMode && <div className="border-b border-violet-100 bg-violet-50 px-4 py-3"><div className="flex items-center gap-3"><Package size={19} className="shrink-0 text-violet-700" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-violet-950">Buying as {vendors.find((v) => v.id === me.vendorId)?.name || 'your business'}</p><p className="mt-0.5 text-xs text-violet-800/80">Source products, send an RFQ and create a supplier purchase order.</p></div><button onClick={() => { setMe({ ...me, buyerMode: false }); nav.reset('v_dash') }} className="shrink-0 rounded-lg bg-white px-2.5 py-2 text-xs font-bold text-violet-800 ring-1 ring-violet-200">Exit buyer</button></div></div>}
       <div className="vv-explore-tools space-y-3 bg-white px-4 pb-3 pt-3 shadow-sm">
         <SearchBar value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search vendors, products, services" right={
           <button onClick={() => { setDraft(f); setOpen(true) }} className="relative grid size-11 shrink-0 place-items-center rounded-xl bg-ink-900 text-white" aria-label="Filters">

@@ -42,7 +42,7 @@ const BK_FLOW = [['requested', 'Request sent'], ['accepted', 'Accepted by vendor
 /* ================= RFQ ================= */
 export function RfqNew({ params = {} }) {
   const nav = useNav()
-  const { rfqs, setRfqs, notify, toast } = useApp()
+  const { me, vendor, rfqs, setRfqs, notify, toast } = useApp()
   const [f, setF] = useState({ title: params.title ? `Bulk quote: ${params.title}` : '', cats: [params.cat || 'elec'], qty: '', budget: '', deadline: dateAfterISO(7), country: 'India', state: 'Rajasthan', city: 'Jaipur', pincode: '', desc: '', invite: true, categoryBudgets: { [params.cat || 'elec']: '' } })
   const [files, setFiles] = useState([])
   const [errs, setErrs] = useState({})
@@ -62,8 +62,9 @@ export function RfqNew({ params = {} }) {
     const primaryCat = f.cats[0]
     const [y, m, d] = f.deadline.split('-')
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
-    setRfqs((r) => [{ id, mine: true, customer: ME_NAME, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'open', created: '19 Oct 2026', history: [{ s: 'open', at: 'Just now' }], quotes: [], chat: [] }, ...r])
-    notify('vendor', 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
+    const buyerName = me.role === 'vendor' ? (vendor(me.vendorId)?.name || me.name || 'Business buyer') : ME_NAME
+    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, customer: buyerName, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'open', created: '19 Oct 2026', history: [{ s: 'open', at: 'Just now' }], quotes: [], chat: [] }, ...r])
+    notify('vendor', me.role === 'vendor' ? 'Vendor buyer RFQ published' : 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
     toast('RFQ sent to matching vendors')
     nav.replace('c_rfq', { id })
   }
@@ -214,13 +215,14 @@ export function OrderDetail({ params = {} }) {
   const o = orders.find((x) => x.id === params.id)
   if (!o) return <Screen title="Purchase order"><EmptyState icon={Package} title="Order not found" action={<Button onClick={() => nav.back()}>Back</Button>} /></Screen>
   const l = listings.find((x) => x.id === o.listingId)
-  const isVendor = me.role === 'vendor'
+  const isSupplier = me.role === 'vendor' && o.vendorId === me.vendorId
+  const isBuyer = o.customer === me.name || me.role === 'customer'
   const next = { placed: ['confirmed', 'Supplier accepted'], confirmed: ['packed', 'Order processing'], packed: ['shipped', 'Order shipped'], shipped: ['delivered', 'Delivery marked received'], delivered: ['completed', 'Order completed'] }[o.status]
-  const update = (status, note, extra = {}) => { patchOrder(o.id, (x) => ({ ...x, ...extra, status, history: [...(x.history || []), { s: status, at: stamp(), note }] })); notify(isVendor ? 'customer' : 'vendor', `Order ${status}`, `${o.id} · ${note}`, 'order'); toast(`Order ${status.replaceAll('_', ' ')}`) }
+  const update = (status, note, extra = {}) => { patchOrder(o.id, (x) => ({ ...x, ...extra, status, history: [...(x.history || []), { s: status, at: stamp(), note }] })); notify(isSupplier ? 'customer' : 'vendor', `Order ${status}`, `${o.id} · ${note}`, 'order'); toast(`Order ${status.replaceAll('_', ' ')}`) }
   return <Screen title={o.id} right={<StatusBadge s={o.status} className="mr-2" />}>
     <Card><div className="flex items-center gap-3"><Thumb tone={l?.tone || 'teal'} icon={Package} size={52} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="text-xs text-ink-500">{vendor(o.vendorId)?.name || 'Supplier'} · {o.qty} {l?.unit || 'units'}</p></div></div><div className="mt-4"><KV rows={[['Buyer', o.customer], ['Delivery', o.address], ['Commercial total', fmt(o.total || 0)], ['Payment', o.pay === 'paid' ? 'Demo payment captured' : 'Terms pending']]} /></div></Card>
     <Card><Timeline steps={(o.history || []).map((h) => ({ label: ORDER_STEPS.find((x) => x[0] === h.s)?.[1] || h.s, at: h.at, note: h.note, done: true }))} /></Card>
-    <div className="flex flex-wrap gap-2">{!isVendor && ['placed', 'confirmed'].includes(o.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by buyer', { pay: o.pay === 'paid' ? 'refund_pending' : o.pay })}>Cancel order</Button>}{isVendor && next && <Button onClick={() => update(next[0], next[1])}>{next[1]}</Button>}{!isVendor && o.status === 'delivered' && <Button onClick={() => update('completed', 'Buyer confirmed delivery')}>Confirm delivery</Button>}<Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Message supplier</Button></div>
+    <div className="flex flex-wrap gap-2">{isBuyer && ['placed', 'confirmed'].includes(o.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by buyer', { pay: o.pay === 'paid' ? 'refund_pending' : o.pay })}>Cancel order</Button>}{isSupplier && next && <Button onClick={() => update(next[0], next[1])}>{next[1]}</Button>}{isBuyer && o.status === 'delivered' && <Button onClick={() => update('completed', 'Buyer confirmed delivery')}>Confirm delivery</Button>}<Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Message supplier</Button></div>
     {o.status === 'cancelled' && <Banner tone="amber" title="Cancellation recorded">Refund or settlement status: {o.pay || 'pending'}.</Banner>}
   </Screen>
 }

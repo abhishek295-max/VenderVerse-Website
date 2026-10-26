@@ -46,7 +46,7 @@ const DICT = {
 
 export function AppProvider({ children, initialMe }) {
   const seed = useMemo(() => ({
-    me: { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest', accountState: 'active' },
+    me: { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest', accountState: 'active', buyerMode: false },
     customCategories: [],
     lang: 'en', locale: { country: 'IN', currency: 'INR', timeZone: 'Asia/Kolkata' }, vendors: VENDORS0, listings: LISTINGS0, orders: ORDERS0,
     bookings: BOOKINGS0, rfqs: RFQS0, leads: LEADS0, commissions: COMMISSIONS0, disputes: DISPUTES0, users: USERS0, agents: AGENTS0,
