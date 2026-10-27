@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
-  Package, CalendarCheck, FileText, IndianRupee, Plus, AlertTriangle, ChevronRight, Store, ShieldCheck, Clock, MessageCircle, Truck, Check, X,
+  Package, CalendarCheck, FileText, IndianRupee, Plus, AlertTriangle, ChevronRight, Store, ShieldCheck, Clock, MessageCircle, Truck, Check, X, Briefcase,
   Upload, Wallet, BarChart3, Star, Settings, LogOut, MapPin, Boxes, CalendarClock, Crown, Download, Trash2, ImagePlus, Phone, TrendingUp, BadgeCheck, Minus, Info,
   LayoutDashboard, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
@@ -42,7 +42,7 @@ function VendorSidebar({ active, vendor, collapsed, onToggle }) {
       <nav className="vv-vendor-nav" aria-label={businessSupplier ? 'Business supplier workspace' : 'Vendor workspace'}>
         {VENDOR_NAV.map(([I, label, id]) => <button type="button" key={id} title={collapsed ? label : undefined} aria-current={active === id ? 'page' : undefined} className={cx('vv-vendor-nav-item', active === id && 'is-active')} onClick={() => nav.go(id)}><I size={19} /><span className="vv-sidebar-label">{businessSupplier && label === 'Quote requests' ? 'Vendor RFQs' : businessSupplier && label === 'Customer reviews' ? 'Buyer reviews' : label}</span></button>)}
       </nav>
-      <div className="vv-sidebar-business"><Thumb tone={vendor?.tone || 'teal'} icon={vendor ? cat(vendor.cat).icon : Store} size={38} round="rounded-xl" /><div className="vv-sidebar-label vv-business-copy"><b>{businessSupplier ? 'Business / Company' : vendor?.name || 'Your business'}</b><small>{businessSupplier ? 'Supplier workspace' : vendor?.status === 'approved' ? 'Verified vendor' : 'Vendor workspace'}</small></div></div>
+      <div className="vv-sidebar-business"><Thumb tone={vendor?.tone || 'teal'} icon={vendor ? cat(vendor.cat).icon : Store} size={38} round="rounded-xl" /><div className="vv-sidebar-label vv-business-copy"><b>{businessSupplier ? me.businessName || 'Business / Company' : vendor?.name || 'Your business'}</b><small>{businessSupplier ? 'Supplier workspace' : vendor?.status === 'approved' ? 'Verified vendor' : 'Vendor workspace'}</small></div></div>
       <button type="button" className="vv-vendor-nav-item vv-sidebar-logout" title={collapsed ? 'Log out' : undefined} onClick={logout}><LogOut size={19} /><span className="vv-sidebar-label">Log out</span></button>
     </aside>
   )
@@ -53,6 +53,46 @@ function VendorWorkspace({ children }) {
   const vendor = useMyVendor()
   const [collapsed, setCollapsed] = useState(false)
   return <div className={cx('vv-vendor-dashboard vv-vendor-workspace', collapsed && 'is-collapsed')}><VendorSidebar active={nav.id} vendor={vendor} collapsed={collapsed} onToggle={() => setCollapsed((x) => !x)} /><main className="vv-vendor-content vv-vendor-workspace-content">{children}</main></div>
+}
+
+/* ================= BUSINESS SUPPLIER ONBOARDING ================= */
+export function BusinessOnboarding() {
+  const nav = useNav()
+  const { me, vendors, setMe, notify, toast } = useApp()
+  const v = vendors.find((x) => x.id === me.vendorId)
+  const [step, setStep] = useState(0)
+  const [source, setSource] = useState('vendor')
+  const [consent, setConsent] = useState(false)
+  const [errs, setErrs] = useState({})
+  const [f, setF] = useState({ name: me.businessName || v?.name || '', type: 'manufacturer_supplier', cat: v?.cat || 'build', gstin: v?.gstin || '', email: v?.email || '', phone: v?.phone || '', areas: v?.areas || ['Jaipur'], moq: '', lead: '', certifications: '' })
+  const update = (key) => (event) => { setF({ ...f, [key]: event?.target ? event.target.value : event }); setErrs({ ...errs, [key]: '' }) }
+  const chooseSource = (value) => {
+    setSource(value)
+    if (value === 'vendor') setF({ ...f, name: v?.name || f.name, gstin: v?.gstin || f.gstin, email: v?.email || f.email, phone: v?.phone || f.phone, areas: v?.areas || f.areas })
+  }
+  const next = () => {
+    const e = {}
+    if (step === 0) { if (f.name.trim().length < 3) e.name = 'Enter a business/company name'; if (!f.cat) e.cat = 'Select a primary category' }
+    if (step === 1) { if (!f.areas.length) e.areas = 'Select at least one delivery area'; if (!f.lead.trim()) e.lead = 'Enter an indicative lead time' }
+    if (step === 2) { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) e.email = 'Enter a valid business email'; if (!consent) e.consent = 'Confirm the supplier details before continuing' }
+    setErrs(e)
+    if (Object.keys(e).length) return
+    if (step < 2) return setStep(step + 1)
+    setMe({ ...me, role: 'business', businessWorkspace: true, businessName: f.name.trim(), businessSetup: { ...f, detailSource: source, createdAt: new Date().toISOString() }, vendorOwnerName: me.vendorOwnerName || me.name, name: f.name.trim(), buyerMode: false })
+    notify('admin', 'Business supplier workspace created', `${f.name.trim()} is ready to receive vendor RFQs.`, 'onboarding')
+    toast('Business supplier workspace created')
+    nav.reset('v_dash')
+  }
+  return (
+    <VendorWorkspace>
+      <Screen title="Business supplier onboarding" subtitle={`Step ${step + 1} of 3`} back={step > 0} footer={<div className="flex gap-2">{step > 0 && <Button variant="secondary" onClick={() => setStep(step - 1)}>Back</Button>}<Button className="flex-1" size="lg" onClick={next}>{step === 2 ? 'Create business workspace' : 'Continue'}</Button></div>}>
+        <Stepper steps={['Business details', 'Supplier coverage', 'Verification']} current={step} />
+        {step === 0 && <div className="space-y-4"><Select label="Select details source" value={source} onChange={(e) => chooseSource(e.target.value)} options={[{ value: 'vendor', label: 'Use details from my vendor profile' }, { value: 'manual', label: 'Enter business details manually' }]} /><Banner tone="blue">Your vendor profile details are used only to prefill this form. You can edit the business details before creating the workspace.</Banner><Input label="Business / company name" required value={f.name} onChange={update('name')} error={errs.name} /><Segmented value={f.type} onChange={update('type')} options={[{ id: 'manufacturer_supplier', label: 'Manufacturer / supplier' }, { id: 'service_provider', label: 'Service provider' }]} /><Select label="Primary supplier category" value={f.cat} onChange={update('cat')} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />{errs.cat && <p className="text-xs font-medium text-red-600">{errs.cat}</p>}</div>}
+        {step === 1 && <div className="space-y-4"><div><p className="mb-2 text-[13px] font-semibold text-ink-700">Delivery / service coverage</p><Chips scroll={false} multi value={f.areas} onChange={(areas) => { setF({ ...f, areas }); setErrs({ ...errs, areas: '' }) }} options={['Jaipur', 'Delhi NCR', 'Ajmer', 'Sikar', 'Jodhpur', 'Kota', 'North India', 'International']} />{errs.areas && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.areas}</p>}</div><div className="flex gap-3"><Input label="MOQ / minimum batch (optional)" placeholder="e.g. 20 units" value={f.moq} onChange={update('moq')} /><Input label="Typical lead time" required placeholder="e.g. 7 days" value={f.lead} onChange={update('lead')} error={errs.lead} /></div><Input label="Certifications / capabilities" textarea rows={3} placeholder="ISO, GST, product certifications, installation or delivery capabilities" value={f.certifications} onChange={update('certifications')} /></div>}
+        {step === 2 && <div className="space-y-4"><Input label="GSTIN / registration number" value={f.gstin} onChange={update('gstin')} /><Input label="Business email" required type="email" value={f.email} onChange={update('email')} error={errs.email} /><Input label="Business phone" value={f.phone} onChange={update('phone')} /><Card><Checkbox checked={consent} onChange={(value) => { setConsent(value); setErrs({ ...errs, consent: '' }) }}>I confirm these supplier details are accurate and can be shared with vendor buyers for RFQs and purchase orders.</Checkbox>{errs.consent && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.consent}</p>}</Card><Banner tone="amber" title="Supplier workspace demo">Your verified vendor identity remains the account owner. This creates a separate supplier workspace view for receiving vendor procurement requests.</Banner></div>}
+      </Screen>
+    </VendorWorkspace>
+  )
 }
 
 /* ================= DASHBOARD ================= */
@@ -421,11 +461,14 @@ export function VendorReviews() {
 export function VendorProfile() {
   const nav = useNav()
   const v = useMyVendor()
-  const { patchVendor, toast, settings } = useApp()
+  const { me, setMe, patchVendor, toast, settings } = useApp()
   const [f, setF] = useState({ name: v?.name || '', phone: v?.phone || '', email: v?.email || '', about: 'Trusted supplier of electrical and hardware products since 2019. Genuine brands, fast delivery.', areas: v?.areas || [] })
   const [errs, setErrs] = useState({})
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [paymentDone, setPaymentDone] = useState(null)
+  const [businessOpen, setBusinessOpen] = useState(false)
+  const [businessName, setBusinessName] = useState(me.businessName || v?.name || '')
+  const [deleteOpen, setDeleteOpen] = useState(false)
   if (!v) return <VendorWorkspace><Screen title="Business profile"><EmptyState icon={Store} title="No business profile yet" body="Complete vendor registration to set up your profile." action={<Button onClick={() => nav.go('v_register')}>Start registration</Button>} /></Screen></VendorWorkspace>
   const save = () => {
     const e = {}
@@ -436,11 +479,36 @@ export function VendorProfile() {
     if (Object.keys(e).length) return
     patchVendor(v.id, { name: f.name, phone: f.phone, email: f.email, areas: f.areas }); toast('Business profile saved'); nav.back()
   }
+  const createBusinessWorkspace = () => {
+    const name = businessName.trim()
+    if (name.length < 3) return toast('Enter a business/company name', 'warn')
+    setMe({ ...me, role: 'business', businessWorkspace: true, businessName: name, vendorOwnerName: me.name, name, buyerMode: false })
+    toast('Business workspace created')
+    setBusinessOpen(false)
+    nav.reset('v_dash')
+  }
+  const deleteAccount = () => {
+    if (me.role === 'business' && me.businessWorkspace) {
+      setMe({ ...me, role: 'vendor', businessWorkspace: false, businessName: undefined, businessSetup: undefined, name: me.vendorOwnerName || me.vendorName || v?.name || me.name, buyerMode: false })
+      toast('Business workspace deleted')
+      setDeleteOpen(false)
+      nav.reset('v_dash')
+      return
+    }
+    setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '', accountState: 'deleted' })
+    toast('Vendor account deletion recorded')
+    setDeleteOpen(false)
+    nav.reset('welcome')
+  }
   return (
     <VendorWorkspace>
     <Screen title="Business profile" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
       <DemoPhonePePayment open={!!selectedPlan} amount={selectedPlan?.price} title={`${selectedPlan?.name || ''} subscription`} onClose={() => setSelectedPlan(null)} onSuccess={() => { patchVendor(v.id, { plan: selectedPlan.name }); setPaymentDone(selectedPlan); setSelectedPlan(null) }} />
       <div className="vv-vendor-profile-body">
+      <Section title="Business workspace"><Card className="!border-violet-200 !bg-violet-50/60 !p-4"><div className="flex items-start gap-3"><Thumb tone="violet" icon={Briefcase} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">{me.businessWorkspace ? 'Business workspace active' : 'Create business workspace'}</p><p className="mt-1 text-xs leading-relaxed text-ink-600">{me.businessWorkspace ? `Open ${me.businessName || 'your company'} supplier dashboard and manage vendor RFQs.` : 'Create a supplier workspace for your company. Vendors can send bulk RFQs and purchase requirements to you.'}</p><Button size="sm" className="mt-3" variant={me.businessWorkspace ? 'secondary' : 'primary'} onClick={() => { if (me.businessWorkspace) { setMe({ ...me, role: 'business', name: me.businessName || me.name, buyerMode: false }); nav.reset('v_dash') } else nav.go('v_business_onboard') }}>{me.businessWorkspace ? 'Open workspace' : 'Create workspace'}</Button></div></div></Card></Section>
+      <Dialog open={businessOpen} onClose={() => setBusinessOpen(false)} title="Create business workspace" actions={<><Button variant="secondary" className="flex-1" onClick={() => setBusinessOpen(false)}>Cancel</Button><Button className="flex-1" onClick={createBusinessWorkspace}>Create & open</Button></>}><p className="text-sm leading-relaxed text-ink-600">This workspace uses your verified vendor account as the supplier identity. Vendors will be able to send bulk RFQs, compare terms and place purchase orders with you.</p><div className="mt-4"><Input label="Business / company name" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} /></div></Dialog>
+      <Section title="Danger zone"><Card className="!border-red-200 !bg-red-50/60 !p-4"><p className="text-sm font-bold text-red-900">{me.role === 'business' ? 'Delete business workspace' : 'Delete vendor account'}</p><p className="mt-1 text-xs leading-relaxed text-red-800/75">{me.role === 'business' ? 'Remove this supplier workspace and return to your vendor account.' : 'Sign out and record deletion of this vendor account in the demo.'}</p><Button variant="dangerSoft" className="mt-3" onClick={() => setDeleteOpen(true)}>Delete account</Button></Card></Section>
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title={me.role === 'business' ? 'Delete business workspace?' : 'Delete vendor account?'} actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Keep account</Button><Button variant="danger" className="flex-1" onClick={deleteAccount}>Confirm delete</Button></>}><p className="text-sm leading-relaxed text-ink-600">{me.role === 'business' ? 'Your vendor workspace and marketplace listings will remain available. Only the Business Supplier workspace will be removed.' : 'This demo will close the vendor session and record the account as deleted. Production deletion would require backend data-retention and verification rules.'}</p></Dialog>
       <div className="flex justify-center"><Thumb tone={v.tone} icon={Store} size={84} /></div>
       <Input label="Business name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} />
       <Input label="GSTIN" value={v.gstin} readOnly hint="Verified by admin — contact support to change" />
@@ -570,12 +638,22 @@ export function VendorMore() {
   const nav = useNav()
   const { setMe, me } = useApp()
   const v = useMyVendor()
+  const [businessOpen, setBusinessOpen] = useState(false)
+  const [businessName, setBusinessName] = useState(me.businessName || v?.name || '')
+  const createBusinessWorkspace = () => {
+    const name = businessName.trim()
+    if (name.length < 3) return
+    setMe({ ...me, role: 'business', businessWorkspace: true, businessName: name, vendorOwnerName: me.vendorOwnerName || me.name, name, buyerMode: false })
+    nav.reset('v_dash')
+  }
   return (
     <VendorWorkspace>
     <Screen title="More" back={false} pad={false}>
       <div className="vv-vendor-more-body space-y-4 p-4">
         <Card onClick={() => nav.go('v_profile')} className="!p-4"><div className="flex items-center gap-3.5"><Thumb tone={v?.tone || 'teal'} icon={Store} size={56} /><div className="min-w-0 flex-1"><p className="truncate text-base font-extrabold">{v?.name || 'Your business'}</p><p className="text-sm text-ink-500">{me.name}</p><div className="mt-1.5">{v?.status === 'approved' ? <Badge tone="green"><ShieldCheck size={11} />Verified</Badge> : <StatusBadge s={v?.status || 'draft'} />}</div></div><ChevronRight size={18} className="text-ink-300" /></div></Card>
         <Group>
+          {me.role === 'business' && me.businessWorkspace && <ListRow icon={Store} tone="sky" title="Open vendor workspace" subtitle="Return to your vendor listings and customer work" onClick={() => { setMe({ ...me, role: 'vendor', name: me.vendorOwnerName || me.vendorName || me.name, buyerMode: false }); nav.reset('v_dash') }} />}
+          <ListRow icon={Briefcase} tone="teal" title={me.businessWorkspace ? 'Open business workspace' : 'Become a supplier / business'} subtitle={me.businessWorkspace ? `Manage ${me.businessName || 'your supplier account'} and vendor RFQs` : 'Create a supplier account and receive vendor bulk RFQs'} onClick={() => { if (me.businessWorkspace) { setMe({ ...me, role: 'business', name: me.businessName || me.name, buyerMode: false }); nav.reset('v_dash') } else nav.go('v_business_onboard') }} />
           <ListRow icon={Package} tone="violet" title="Buy as a business" subtitle="Open supplier-only marketplace" onClick={() => { setMe({ ...me, buyerMode: true }); nav.go('v_explore', { mode: 'all' }) }} />
           <ListRow icon={ShieldCheck} tone="emerald" title="Verification" subtitle="Documents & status" onClick={() => nav.go('v_verify')} />
           <ListRow icon={Package} tone="sky" title="Purchase orders" subtitle="Supplier fulfilment & tracking" onClick={() => nav.go('v_orders')} />
@@ -589,6 +667,7 @@ export function VendorMore() {
         </Group>
         <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' }); nav.reset('c_home') }}>Log out</Button>
       </div>
+      <Dialog open={businessOpen} onClose={() => setBusinessOpen(false)} title="Become a supplier / business" actions={<><Button variant="secondary" className="flex-1" onClick={() => setBusinessOpen(false)}>Cancel</Button><Button className="flex-1" onClick={() => { createBusinessWorkspace(); setBusinessOpen(false) }}>Create & open</Button></>}><p className="text-sm leading-relaxed text-ink-600">Use your existing vendor identity as a Business / Company supplier. Vendors can send bulk RFQs, review quotations and place purchase orders with you.</p><div className="mt-4"><Input label="Business / company name" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} /></div></Dialog>
     </Screen>
     </VendorWorkspace>
   )

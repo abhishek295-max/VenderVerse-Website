@@ -11,7 +11,7 @@ import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Banner, EmptyState, Stat, KV, fmt, cx,
   Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, HBar, BarChart, Spark, SearchBar, SOFT, GRAD, Checkbox,
 } from '../ui.jsx'
-import { NotifBell, VerifiedBadge } from './shared.jsx'
+import { NotifBell, VerifiedBadge, vendorKind } from './shared.jsx'
 
 const INDUSTRIES = ['Construction & Infrastructure', 'Electrical & Energy', 'Office & Technology', 'Home & Facilities', 'Food & Events', 'Professional Services']
 
@@ -91,11 +91,11 @@ export function AdminVendors({ params = {} }) {
   const { vendors } = useApp()
   const [f, setF] = useState(params.f || 'pending')
   const match = { pending: ['submitted'], info: ['info'], rejected: ['rejected'], approved: ['approved'], all: null }[f]
-  const list = vendors.filter((v) => !match || match.includes(v.status))
+  const list = vendors.filter((v) => f === 'business' ? vendorKind(v) === 'Supplier' : (!match || match.includes(v.status)))
   const c = (st) => vendors.filter((v) => st.includes(v.status)).length
   return (
-    <Screen title="Vendor verification">
-      <Chips value={f} onChange={setF} options={[{ id: 'pending', label: `Pending (${c(['submitted'])})` }, { id: 'info', label: `Info needed (${c(['info'])})` }, { id: 'rejected', label: `Rejected (${c(['rejected'])})` }, { id: 'approved', label: `Approved (${c(['approved'])})` }, { id: 'all', label: 'All' }]} />
+    <Screen title="Vendor & supplier accounts" right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('ad_vendor_new')}>Add</Button>}>
+      <Chips value={f} onChange={setF} options={[{ id: 'pending', label: `Pending (${c(['submitted'])})` }, { id: 'info', label: `Info needed (${c(['info'])})` }, { id: 'rejected', label: `Rejected (${c(['rejected'])})` }, { id: 'approved', label: `Approved (${c(['approved'])})` }, { id: 'business', label: `Business suppliers (${vendors.filter((v) => vendorKind(v) === 'Supplier').length})` }, { id: 'all', label: 'All' }]} />
       <div className="space-y-2.5">
         {list.map((v) => (
           <Card key={v.id} onClick={() => nav.go('ad_vendor', { id: v.id })} className="!p-3.5">
@@ -108,13 +108,38 @@ export function AdminVendors({ params = {} }) {
   )
 }
 
+export function AdminVendorNew() {
+  const nav = useNav()
+  const { setVendors, addAudit, toast, stamp } = useApp()
+  const [f, setF] = useState({ name: '', owner: '', type: 'vendor', cat: CATS[0]?.id || 'elec', city: '', email: '', phone: '' })
+  const [err, setErr] = useState('')
+  const save = () => {
+    if (f.name.trim().length < 3 || f.owner.trim().length < 3 || !f.city.trim()) return setErr('Business name, owner and city are required')
+    const id = `admin-v-${Date.now()}`
+    const record = { id, name: f.name.trim(), owner: f.owner.trim(), cat: f.cat, city: f.city.trim(), areas: [f.city.trim()], branches: 1, rating: 0, reviews: 0, status: 'submitted', tone: cat(f.cat).tone || 'teal', since: new Date().getFullYear(), gstin: 'Pending verification', phone: f.phone.trim() || 'Not provided', email: f.email.trim() || 'Not provided', plan: 'Starter', docs: [{ name: 'Business registration proof', status: 'pending' }, { name: 'Identity / tax document', status: 'pending' }], history: [{ s: 'submitted', at: stamp(), by: ME.admin }], ...(f.type === 'business' ? { supplierType: 'business' } : {}) }
+    setVendors((all) => [record, ...all]); addAudit(f.type === 'business' ? 'Created business supplier' : 'Created vendor account', record.name, 'user'); toast(f.type === 'business' ? 'Business supplier added' : 'Vendor added'); nav.go('ad_vendor', { id })
+  }
+  return <Screen title={f.type === 'business' ? 'Add business supplier' : 'Add vendor'} footer={<Button full size="lg" onClick={save}>Create account</Button>}>
+    <Banner tone="blue">Admin-created accounts enter verification as pending. The account owner must provide evidence before approval.</Banner>
+    <Segmented value={f.type} onChange={(type) => setF({ ...f, type })} options={[{ id: 'vendor', label: 'Vendor' }, { id: 'business', label: 'Business supplier' }]} />
+    <Input label="Business name" required value={f.name} onChange={(e) => { setF({ ...f, name: e.target.value }); setErr('') }} />
+    <Input label="Owner / authorised contact" required value={f.owner} onChange={(e) => { setF({ ...f, owner: e.target.value }); setErr('') }} />
+    <Select label="Primary category" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value })} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />
+    <Input label="City / coverage base" required value={f.city} onChange={(e) => { setF({ ...f, city: e.target.value }); setErr('') }} />
+    <div className="grid gap-3 sm:grid-cols-2"><Input label="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /><Input label="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
+    {err && <p className="text-sm font-medium text-red-600">{err}</p>}
+  </Screen>
+}
+
 export function AdminVendor({ params }) {
   const nav = useNav()
-  const { vendors, patchVendor, addAudit, notify, toast, leads, patchLead, setCommissions, stamp } = useApp()
+  const { vendors, setVendors, patchVendor, addAudit, notify, toast, leads, patchLead, setCommissions, stamp } = useApp()
   const v = vendors.find((x) => x.id === (params.id || 'v8'))
   const [dlg, setDlg] = useState(null)
   const [reason, setReason] = useState('')
   const [err, setErr] = useState('')
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  if (!v) return <Screen title="Account unavailable"><EmptyState icon={Store} title="Vendor account not found" body="This account may have been deleted by an administrator." /><Button full onClick={() => nav.go('ad_vendors')}>Back to accounts</Button></Screen>
   const allVerified = v.docs.every((d) => d.status === 'verified')
   const setDoc = (name, status, note) => patchVendor(v.id, (x) => ({ docs: x.docs.map((d) => (d.name === name ? { ...d, status, note } : d)) }))
   const act = (kind) => {
@@ -136,12 +161,10 @@ export function AdminVendor({ params }) {
       title={v.name}
       subtitle={v.id}
       right={<StatusBadge s={v.status} className="mr-2" />}
-      overlay={
-        <Dialog open={!!dlg} onClose={() => { setDlg(null); setErr('') }} title={dlg === 'approved' ? 'Approve this vendor?' : dlg === 'rejected' ? 'Reject application' : 'Request more information'} actions={<><Button variant="secondary" className="flex-1" onClick={() => { setDlg(null); setErr('') }}>Cancel</Button><Button variant={dlg === 'rejected' ? 'danger' : 'primary'} className="flex-1" onClick={() => act(dlg)}>{dlg === 'approved' ? 'Approve' : dlg === 'rejected' ? 'Reject' : 'Send request'}</Button></>}>
+      overlay={<><Dialog open={!!dlg} onClose={() => { setDlg(null); setErr('') }} title={dlg === 'approved' ? 'Approve this vendor?' : dlg === 'rejected' ? 'Reject application' : 'Request more information'} actions={<><Button variant="secondary" className="flex-1" onClick={() => { setDlg(null); setErr('') }}>Cancel</Button><Button variant={dlg === 'rejected' ? 'danger' : 'primary'} className="flex-1" onClick={() => act(dlg)}>{dlg === 'approved' ? 'Approve' : dlg === 'rejected' ? 'Reject' : 'Send request'}</Button></>}>
           {dlg === 'approved' ? <p>{v.name} will be shown as <b>Verified</b> and can publish listings. This action is recorded in the audit log.</p> : <Input textarea rows={3} label="Reason (visible to vendor)" value={reason} onChange={(e) => { setReason(e.target.value); setErr('') }} error={err} placeholder={dlg === 'rejected' ? 'e.g. GSTIN inactive on portal' : 'e.g. Please re-upload a clear GST certificate'} />}
-        </Dialog>
-      }
-      footer={<div className="space-y-2">{!allVerified && v.status !== 'approved' && <button onClick={() => v.docs.forEach((d) => setDoc(d.name, 'verified'))} className="w-full text-center text-xs font-bold text-brand-700">Mark all documents as verified</button>}<div className="flex gap-2"><Button variant="dangerSoft" className="flex-1" onClick={() => setDlg('rejected')}>Reject</Button><Button variant="secondary" className="flex-1" onClick={() => setDlg('info')}>Request info</Button><Button className="flex-1" disabled={!allVerified || v.status === 'approved'} onClick={() => setDlg('approved')}>Approve</Button></div></div>}
+        </Dialog><Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title={`Delete ${vendorKind(v).toLowerCase()} account?`} actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { setVendors((all) => all.filter((x) => x.id !== v.id)); addAudit('Deleted vendor account', v.name, 'user'); toast('Account deleted'); setDeleteOpen(false); nav.go('ad_vendors') }}>Delete account</Button></>}><p>This removes <b>{v.name}</b> from the admin account directory in this demo. Existing audit history remains recorded.</p></Dialog></>}
+      footer={<div className="space-y-2">{!allVerified && v.status !== 'approved' && <button onClick={() => v.docs.forEach((d) => setDoc(d.name, 'verified'))} className="w-full text-center text-xs font-bold text-brand-700">Mark all documents as verified</button>}<div className="flex gap-2"><Button variant="dangerSoft" className="flex-1" onClick={() => setDlg('rejected')}>Reject</Button><Button variant="secondary" className="flex-1" onClick={() => setDlg('info')}>Request info</Button><Button className="flex-1" disabled={!allVerified || v.status === 'approved'} onClick={() => setDlg('approved')}>Approve</Button></div><Button full variant="dangerSoft" icon={Trash2} onClick={() => setDeleteOpen(true)}>Delete {vendorKind(v).toLowerCase()} account</Button></div>}
     >
       <Card><div className="flex items-center gap-3"><Thumb tone={v.tone} icon={cat(v.cat).icon} size={56} /><div className="min-w-0"><p className="text-base font-extrabold leading-tight">{v.name}</p><p className="text-sm text-ink-500">{v.owner}</p><div className="mt-1.5"><VerifiedBadge id={v.id} /></div></div></div></Card>
       {decided && <Banner tone={v.status === 'approved' ? 'green' : 'red'} title={v.status === 'approved' ? 'Approved' : 'Rejected'}>{v.history[v.history.length - 1].note || `Decision recorded by ${v.history[v.history.length - 1].by}.`}</Banner>}
