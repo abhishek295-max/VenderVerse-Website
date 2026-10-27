@@ -13,6 +13,7 @@ import './screens/explore-visuals.css'
 import './screens/vendor-dashboard-visuals.css'
 import './screens/agent-dashboard-visuals.css'
 import './screens/admin-dashboard-visuals.css'
+import './screens/dashboard-reference.css'
 
 const INITIAL_SCREEN = window.location.hash.replace(/^#\/?/, '')
 

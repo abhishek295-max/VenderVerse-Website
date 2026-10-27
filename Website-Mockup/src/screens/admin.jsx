@@ -375,7 +375,7 @@ export function AdminAgents() {
 }
 export function AdminAgent({ params }) {
   const nav = useNav()
-  const { agents, commissions, patchCommission, addAudit, toast, settings } = useApp()
+  const { agents, setAgents, commissions, patchCommission, addAudit, toast, settings } = useApp()
   const isNew = params.id === 'new'
   const a = agents.find((x) => x.id === params.id) || agents[0]
   const [f, setF] = useState({ name: '', phone: '', region: 'Jaipur North' })
@@ -384,7 +384,7 @@ export function AdminAgent({ params }) {
   const mine = commissions.filter((c) => !isNew && (a.name === 'Neha Verma' || c.status === 'zzz'))
   if (isNew) {
     return (
-      <Screen title="Invite sales agent" footer={<Button full size="lg" onClick={() => { if (f.name.trim().length < 3 || !/^[6-9]\d{9}$/.test(f.phone)) return setErr('Enter a valid name and 10-digit phone number'); addAudit('Invited sales agent', f.name, 'user'); toast('Invitation sent via SMS'); nav.back() }}>Send invitation</Button>}>
+      <Screen title="Invite sales agent" footer={<Button full size="lg" onClick={() => { if (f.name.trim().length < 3 || !/^[6-9]\d{9}$/.test(f.phone)) return setErr('Enter a valid name and 10-digit phone number'); const id = `ag-${Date.now()}`; setAgents((all) => [...all, { id, name: f.name.trim(), phone: f.phone, region: f.region, leads: 0, converted: 0, vendors: 0, customers: 0, commission: 0, status: 'active' }]); addAudit('Added sales agent', f.name, 'user'); toast('Sales agent added'); nav.back() }}>Add sales agent</Button>}>
         <Banner tone="blue">Sales Agents are invited by Super Admin. They get lead-management access only — no approval or platform-setting permissions.</Banner>
         <Input label="Full name" required value={f.name} onChange={(e) => { setF({ ...f, name: e.target.value }); setErr('') }} />
         <Input label="Mobile number" required inputMode="numeric" maxLength={10} value={f.phone} onChange={(e) => { setF({ ...f, phone: e.target.value.replace(/\D/g, '') }); setErr('') }} error={err} />
@@ -394,7 +394,7 @@ export function AdminAgent({ params }) {
   }
   const act = (c, st) => { patchCommission(c.id, { status: st }); addAudit(st === 'approved' ? 'Approved commission' : st === 'paid' ? 'Paid commission' : 'Rejected commission', `${c.lead} · ${fmt(c.amount)}`, 'financial'); toast(`Commission ${st}`) }
   return (
-    <Screen title={a.name} subtitle={a.region} right={<StatusBadge s={a.status} className="mr-2" />}>
+    <Screen title={a.name} subtitle={a.region} right={<StatusBadge s={a.status} className="mr-2" />} overlay={<Dialog open={dlg === 'delete'} onClose={() => setDlg(null)} title="Delete sales agent?" actions={<><Button variant="secondary" className="flex-1" onClick={() => setDlg(null)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { setAgents((all) => all.filter((x) => x.id !== a.id)); addAudit('Deleted sales agent', a.name, 'user'); toast('Sales agent deleted'); setDlg(null); nav.go('ad_agents') }}>Delete agent</Button></>}><p>This removes <b>{a.name}</b> from the admin agent directory. Commission history remains in the audit trail.</p></Dialog>}>
       <div className="grid grid-cols-3 gap-2">{[['Leads', a.leads], ['Converted', a.converted], ['Rate', `${Math.round((a.converted / (a.leads || 1)) * 100)}%`]].map(([k, v]) => <Card key={k} className="!p-3 text-center"><p className="text-lg font-extrabold">{v}</p><p className="text-[11px] text-ink-500">{k}</p></Card>)}</div>
       <Card><KV rows={[['Vendors onboarded', a.vendors], ['Customers registered', a.customers], ['Commission earned', fmt(a.commission)], ['Rule', `${fmt(settings.agentCommission.amount)} per activated vendor`]]} /></Card>
       <Banner tone="amber" title="Anti-fraud rule">Agents cannot approve vendors they onboarded. Commission needs admin approval after attribution is verified.</Banner>
@@ -408,6 +408,7 @@ export function AdminAgent({ params }) {
           ))}</div>
         )}
       </Section>
+      <Button full variant="dangerSoft" icon={Trash2} onClick={() => setDlg('delete')}>Delete sales agent</Button>
     </Screen>
   )
 }

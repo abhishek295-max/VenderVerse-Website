@@ -1,0 +1,119 @@
+/* Shared visual layer for the four role workspaces.
+   This mirrors the supplied Glass Corporate reference while leaving the
+   existing components, routes, and interaction state untouched. */
+.vv-vendor-dashboard-route,
+.vv-agent-route,
+.vv-admin-route {
+  --vv-ref-ink: #0c2233;
+  --vv-ref-muted: #5b7080;
+  --vv-ref-brand: #0b7180;
+  --vv-ref-brand-2: #54a99f;
+  background:
+    radial-gradient(ellipse at 12% 8%, #bfe9e3 0, transparent 38%),
+    radial-gradient(ellipse at 88% 18%, #c6dcf3 0, transparent 36%),
+    radial-gradient(ellipse at 60% 96%, #d5efe6 0, transparent 40%),
+    #e8f0f3;
+  color: var(--vv-ref-ink);
+}
+
+.vv-agent-route .vv-agent-sidebar,
+.vv-admin-route .vv-agent-sidebar,
+.vv-vendor-dashboard .vv-vendor-sidebar {
+  border-right-color: rgba(255, 255, 255, .78);
+  background: rgba(255, 255, 255, .68);
+  box-shadow: 1px 0 0 rgba(12, 34, 51, .08), 8px 0 28px rgba(12, 34, 51, .035);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+}
+
+.vv-agent-route .vv-agent-sidebar-user,
+.vv-admin-route .vv-agent-sidebar-user,
+.vv-vendor-dashboard .vv-sidebar-business {
+  border-color: rgba(255, 255, 255, .8);
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 8px 18px rgba(12, 34, 51, .06);
+}
+
+.vv-agent-route .vv-agent-main > header,
+.vv-admin-route .vv-admin-main > header,
+.vv-vendor-dashboard .vv-vendor-topbar {
+  border-bottom-color: rgba(255, 255, 255, .72);
+  background: rgba(255, 255, 255, .58);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 8px 22px rgba(12, 34, 51, .045);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+}
+
+.vv-agent-route .vv-screen-scroll,
+.vv-admin-route .vv-screen-scroll,
+.vv-vendor-dashboard-route [class~="min-h-0"][class~="flex-1"][class~="overflow-y-auto"] {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(191, 233, 227, .7) 0, transparent 38%),
+    radial-gradient(ellipse at 88% 18%, rgba(198, 220, 243, .6) 0, transparent 36%),
+    linear-gradient(145deg, #e8f0f3, #eef7f5 58%, #f7fbfc);
+}
+
+/* The reference uses an airy KPI strip rather than a narrow two-column stack. */
+.vv-agent-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2,
+.vv-admin-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.vv-admin-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vv-agent-route .vv-screen-scroll [class*="shadow-[0_1px"],
+.vv-admin-route .vv-screen-scroll [class*="shadow-[0_1px"],
+.vv-vendor-dashboard .vv-vendor-dashboard-body > section,
+.vv-vendor-dashboard .vv-vendor-dashboard-body > [class*="rounded-2xl"][class*="bg-white"] {
+  border-color: rgba(255, 255, 255, .78);
+  background: rgba(255, 255, 255, .68);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 14px 34px rgba(12, 34, 51, .09);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+.vv-agent-chart-card {
+  overflow: hidden;
+  border-top: 3px solid var(--vv-ref-brand-2) !important;
+}
+
+.vv-agent-chart-card svg,
+.vv-admin-route svg,
+.vv-vendor-dashboard svg {
+  max-width: 100%;
+}
+
+@media (max-width: 1080px) {
+  .vv-agent-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2,
+  .vv-admin-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2,
+  .vv-admin-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .vv-agent-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2,
+  .vv-admin-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .vv-agent-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2,
+  .vv-admin-route .vv-screen-scroll > div > .-mt-10 > .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vv-agent-route *, .vv-admin-route *, .vv-vendor-dashboard *,
+  .vv-agent-route *::before, .vv-admin-route *::before, .vv-vendor-dashboard *::before,
+  .vv-agent-route *::after, .vv-admin-route *::after, .vv-vendor-dashboard *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

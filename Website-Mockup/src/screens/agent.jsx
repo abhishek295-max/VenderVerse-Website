@@ -1,13 +1,13 @@
 ﻿import { useState } from 'react'
 import {
   Users, Phone, MessageSquare, MapPin, Plus, CalendarClock, ChevronRight, Check, Store, User, Wallet, ShieldCheck, Lock, FileText, Clock,
-  TrendingUp, LogOut, Globe, Bell, Flag, Upload, Target, BadgeCheck, AlertTriangle, Search, ArrowDown, ArrowRight, List, Columns3,
+  TrendingUp, LogOut, Globe, Bell, Flag, Upload, Target, BadgeCheck, AlertTriangle, Search, ArrowDown, ArrowRight, List, Columns3, Trash2,
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { STAGES, STAGE_TONE, cat, CATS } from '../data.jsx'
 import {
-  Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, Stat, KV, fmt, cx,
+  Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, Stat, KV, fmt, cx, BarChart,
   Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, Stepper, HBar, Checkbox, SearchBar, SOFT,
 } from '../ui.jsx'
 import { NotifBell } from './shared.jsx'
@@ -131,6 +131,10 @@ export function AgentHome() {
         <Section title="Pipeline" action="Board" onAction={() => nav.go('a_leads')}>
           <PipelineFunnel leads={leads} onPick={(s) => nav.go('a_leads', { stage: s })} />
         </Section>
+        <Card className="vv-agent-chart-card">
+          <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold">Lead activity</p><p className="text-xs text-ink-500">New and converted leads · last 6 weeks</p></div><Badge tone="teal">Live pipeline</Badge></div>
+          <div className="mt-4"><BarChart data={[{ label: 'W1', value: 8 }, { label: 'W2', value: 12 }, { label: 'W3', value: 10 }, { label: 'W4', value: 16 }, { label: 'W5', value: 14 }, { label: 'W6', value: Math.max(18, active.length) }]} height={126} /></div>
+        </Card>
         <Section title="Today’s follow-ups" action="All" onAction={() => nav.go('a_followups')}>
           <div className="space-y-2.5">{today.slice(0, 3).map((l) => <LeadCard key={l.id} l={l} onClick={() => nav.go('a_lead', { id: l.id })} />)}{today.length === 0 && <Card className="text-center text-sm text-ink-500">Nothing due — great job! 🎉</Card>}</div>
         </Section>
@@ -402,8 +406,10 @@ export function AgentProfile() {
   const nav = useNav()
   const { me, setMe, lang, setLang, toast, leads } = useApp()
   const conv = leads.filter((l) => l.stage === 'Approved/Converted').length
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const deleteAccount = () => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '', accountState: 'deleted' }); setDeleteOpen(false); toast('Sales-agent account deletion recorded'); nav.reset('welcome') }
   return (
-    <Screen title="Profile" back={false} pad={false}>
+    <Screen title="Profile" back={false} pad={false} overlay={<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete sales-agent account?" actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={deleteAccount}>Delete account</Button></>}><p>This signs you out and records the deletion request in this browser demo. Assigned leads remain with the marketplace.</p></Dialog>}>
       <div className="space-y-4 p-4">
         <Card className="!p-4"><div className="flex items-center gap-3.5"><Avatar name={me.name || 'Neha Verma'} size={60} /><div><p className="text-lg font-extrabold">{me.name || 'Neha Verma'}</p><p className="text-sm text-ink-500">Sales Agent · Jaipur North</p><Badge tone="teal" className="mt-1.5">ID SA-0142</Badge></div></div></Card>
         <div className="grid grid-cols-3 gap-2">{[['Leads', leads.length], ['Converted', conv], ['Rate', `${Math.round((conv / leads.length) * 100)}%`]].map(([a, b]) => <Card key={a} className="!p-3 text-center"><p className="text-lg font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
@@ -414,6 +420,7 @@ export function AgentProfile() {
           <ListRow icon={ShieldCheck} tone="emerald" title="Permissions" subtitle="View assigned leads · no approval rights" onClick={() => toast('Agents cannot approve vendors or change platform settings')} last />
         </Group>
         <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' }); nav.reset('c_home') }}>Log out</Button>
+        <Card className="border border-red-100 bg-red-50/50"><div className="flex items-center gap-3"><Trash2 size={18} className="text-red-600" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-red-800">Delete account</p><p className="text-xs text-red-700/80">Remove your sales-agent access from this demo.</p></div><Button size="sm" variant="dangerSoft" onClick={() => setDeleteOpen(true)}>Delete</Button></div></Card>
       </div>
     </Screen>
   )

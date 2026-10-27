@@ -78,6 +78,7 @@ export const SCREENS = Object.fromEntries([
   R('ad_dash', AD.AdminDashboard, 'admin', 'Dashboard', ['FR-13'], { tab: true, bar: 'ink' }),
   R('ad_approvals', AD.Approvals, 'admin', 'Approvals hub', ['FR-03', 'FR-04', 'FR-11'], { tab: true }),
   R('ad_vendors', AD.AdminVendors, 'admin', 'Vendor verification queue', ['FR-03']),
+  R('ad_vendor_new', AD.AdminVendorNew, 'admin', 'Add vendor or business supplier', ['FR-03']),
   R('ad_vendor', AD.AdminVendor, 'admin', 'Review vendor', ['FR-03', 'FR-15'], { defaultParams: { id: 'v8' } }),
   R('ad_listings', AD.AdminListings, 'admin', 'Listing moderation', ['FR-04']),
   R('ad_listing', AD.AdminListing, 'admin', 'Review listing', ['FR-04', 'FR-15'], { defaultParams: { id: 'l5' } }),
