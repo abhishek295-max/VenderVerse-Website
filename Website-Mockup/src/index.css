@@ -66,3 +66,88 @@ input[type="date"], input[type="time"] { min-height: 1.5rem; }
 .vv-market-vendors .group h3 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vv-market-vendors .group p { min-width: 0; overflow-wrap: anywhere; }
 .vv-c-home .vv-market-content > section:first-child { display: none; }
+
+/* Keep the shared marketplace header in one stable desktop row. */
+@media (min-width: 768px) {
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child {
+    flex: 0 0 auto;
+    min-width: max-content;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] > button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-width: max-content;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child > span {
+    min-width: 0;
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
+    min-width: 0;
+    flex: 0 1 210px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative > button {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1180px) {
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
+    gap: 6px;
+    padding-inline: 12px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] > button {
+    gap: 5px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] {
+    justify-content: flex-start;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child > span {
+    max-width: 170px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
+    flex-basis: 155px;
+  }
+}

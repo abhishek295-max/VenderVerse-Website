@@ -16,9 +16,7 @@ const COVERAGE = [
 ]
 const VENDOR_TYPES = ['Service providers', 'Contractors', 'Manufacturers / OEM', 'Suppliers & distributors', 'Wholesalers & exporters', 'Rental & equipment', 'Professional & IT agencies']
 const LANDING_SHOWCASE = [
-  { src: '/screens/laptop-marketplace-dashboard.png', alt: 'VendorVerse marketplace dashboard on a laptop' },
-  { src: '/screens/mobile-vendor-dashboard.png', alt: 'VendorVerse vendor dashboard on a mobile phone' },
-  { src: '/screens/desktop-admin-dashboard.png', alt: 'VendorVerse admin dashboard on a desktop monitor' },
+  { src: '/screens/global-business-network-interface.png', alt: 'VendorVerse global business network with trusted vendors and worldwide connections' },
 ]
 
 function HeroMotion() {

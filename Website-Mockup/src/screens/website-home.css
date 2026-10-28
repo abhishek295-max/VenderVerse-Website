@@ -184,6 +184,204 @@
   .vv-c-home *, .vv-c-home *::before, .vv-c-home *::after { animation: none !important; transition: none !important; }
 }
 
+/* Global network hero visual: use the supplied composite as one integrated
+   3D-leaning visual instead of three separate dashboard previews. */
+.vv-c-home {
+  --vv-reference-ink: #10302a;
+  --vv-reference-muted: #6b7f78;
+  --vv-reference-green: #087f5b;
+  --vv-reference-deep: #064e3b;
+  --vv-reference-mint: #e5f7ef;
+  color: var(--vv-reference-ink);
+  background: linear-gradient(180deg, #eefaf4 0%, #f8fdfa 48%, #eaf7f0 100%);
+}
+
+.vv-c-home .vv-market-hero {
+  min-height: 620px;
+  color: var(--vv-reference-ink) !important;
+  background:
+    radial-gradient(circle at 80% 38%, rgba(22,168,117,.15), transparent 34%),
+    linear-gradient(120deg, #eefaf4 0%, #f8fdfa 47%, #e5f7ef 100%) !important;
+}
+
+.vv-c-home .vv-market-hero::before {
+  background-image:
+    radial-gradient(rgba(8,127,91,.09) .8px, transparent .8px),
+    radial-gradient(circle at 8% 8%, rgba(255,255,255,.8), transparent 34%);
+  background-size: 24px 24px, auto;
+  opacity: .72;
+}
+
+.vv-c-home .vv-market-hero-inner {
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+  gap: clamp(18px, 2vw, 34px);
+  padding-top: 36px !important;
+  padding-bottom: 76px !important;
+}
+
+.vv-c-home .vv-market-hero h1 {
+  max-width: 700px;
+  color: var(--vv-reference-ink) !important;
+  font-size: clamp(38px, 4.35vw, 60px);
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+
+.vv-c-home .vv-market-hero h1 span {
+  color: var(--vv-reference-green) !important;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.vv-c-home .vv-market-hero p,
+.vv-c-home .vv-market-facts { color: var(--vv-reference-muted) !important; }
+
+.vv-c-home .vv-hero-tag {
+  border-color: #dde9e3;
+  border-radius: 999px;
+  background: rgba(255,255,255,.84);
+  color: var(--vv-reference-green);
+}
+
+.vv-c-home .vv-market-search {
+  max-width: 620px !important;
+  padding: 8px 8px 8px 22px !important;
+  border: 1px solid #dde9e3;
+  border-radius: 999px !important;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(8,127,91,.12) !important;
+}
+
+.vv-c-home .vv-market-search button {
+  min-height: 48px;
+  border-radius: 999px !important;
+  background: var(--vv-reference-green);
+  color: #fff;
+  transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.vv-c-home .vv-market-search button:hover {
+  background: #066b4c;
+  box-shadow: 0 7px 18px rgba(8,127,91,.2);
+  transform: translateY(-1px);
+}
+
+.vv-c-home .vv-hero-side {
+  min-height: clamp(390px, 39vw, 540px);
+  align-self: center;
+  filter: drop-shadow(0 22px 34px rgba(6,78,59,.13));
+}
+
+/* The supplied image already contains the person, globe, vendor cards and
+   metrics. The old cube/orbit is retained in the DOM for the existing motion
+   hook, but hidden so it cannot compete with the supplied composition. */
+.vv-c-home .vv-hero-stage {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.vv-c-home .vv-hero-showcase {
+  inset: -8px -18px -30px -8px;
+  overflow: visible;
+  perspective: 1200px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.vv-c-home .vv-hero-showcase::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 10% 8% 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(125,218,185,.3), transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.vv-c-home .vv-hero-showcase .vv-hero-image {
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0;
+  mix-blend-mode: multiply;
+  filter: saturate(.98) contrast(.98);
+  -webkit-mask-image: radial-gradient(ellipse 94% 96% at 52% 48%, #000 58%, rgba(0,0,0,.72) 84%, transparent 100%);
+  mask-image: radial-gradient(ellipse 94% 96% at 52% 48%, #000 58%, rgba(0,0,0,.72) 84%, transparent 100%);
+  transform: perspective(1200px) rotateY(-4deg) rotateX(1deg) translateZ(0) scale(.99);
+  transform-origin: 52% 50%;
+  transition: opacity .75s ease, transform .75s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+}
+
+.vv-c-home .vv-hero-showcase .vv-hero-image.is-active {
+  transform: perspective(1200px) rotateY(-4deg) rotateX(1deg) translateZ(0) scale(1);
+}
+
+.vv-c-home .vv-hero-showcase-arrow {
+  border-color: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.88);
+  color: var(--vv-reference-green);
+  box-shadow: 0 6px 16px rgba(6,78,59,.14);
+}
+
+.vv-c-home .vv-hero-showcase-dots {
+  bottom: 22px;
+  background: rgba(6,78,59,.16);
+}
+
+.vv-c-home .vv-hero-waves {
+  height: clamp(78px, 8vw, 116px);
+  background: transparent;
+  border: 0;
+}
+
+.vv-c-home .vv-hero-waves > div { width: 100%; animation: none; }
+.vv-c-home .vv-hero-waves > div:first-child svg path { fill: var(--vv-reference-deep); }
+.vv-c-home .vv-hero-waves > div + div { bottom: 10px; opacity: .96; }
+.vv-c-home .vv-hero-waves > div + div svg path { fill: #16a875; }
+
+/* The hero should end cleanly without the decorative wave. */
+.vv-c-home .vv-hero-waves { display: none; }
+
+.vv-c-home .vv-market-content {
+  background: transparent;
+  color: var(--vv-reference-ink);
+}
+
+.vv-c-home .vv-market-content .bg-white,
+.vv-c-home .vv-market-content article {
+  border-color: #dde9e3;
+  box-shadow: 0 8px 24px rgba(6,78,59,.06);
+}
+
+.vv-c-home .vv-market-content .bg-white:hover,
+.vv-c-home .vv-market-content article:hover {
+  box-shadow: 0 14px 30px rgba(6,78,59,.12);
+}
+
+@media (max-width: 1100px) {
+  .vv-c-home .vv-market-hero { min-height: 0; }
+  .vv-c-home .vv-market-hero-inner { grid-template-columns: 1fr; }
+  .vv-c-home .vv-hero-side { min-height: 340px; }
+  .vv-c-home .vv-hero-showcase { inset: 0 0 -22px; }
+}
+
+@media (max-width: 700px) {
+  .vv-c-home .vv-market-hero-inner { padding-top: 24px !important; padding-bottom: 56px !important; }
+  .vv-c-home .vv-market-hero h1 { font-size: clamp(32px, 9vw, 44px); }
+  .vv-c-home .vv-market-search { border-radius: 22px !important; padding: 7px !important; }
+  .vv-c-home .vv-market-search button { border-radius: 14px !important; }
+  .vv-c-home .vv-hero-side { min-height: 220px; }
+  .vv-c-home .vv-hero-showcase { inset: 0 0 -10px; }
+  .vv-c-home .vv-hero-showcase .vv-hero-image,
+  .vv-c-home .vv-hero-showcase .vv-hero-image.is-active { transform: none; }
+  .vv-c-home .vv-hero-showcase .vv-hero-image {
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+  }
+  .vv-c-home .vv-hero-waves { height: 60px; }
+}
+
 /* Emerald Luxe refinement: visual-only overrides for the existing public home. */
 .vv-c-home {
   background: #f8faf8;
@@ -620,6 +818,43 @@
 @media (prefers-reduced-motion: reduce) {
   .vv-c-home .vv-vendor-train .vv-train-track,
   .vv-c-home .vv-listing-train .vv-train-track { animation: none; }
+}
+
+/* Smooth 3D float for the single supplied hero visual. */
+.vv-c-home .vv-hero-showcase .vv-hero-image.is-active {
+  transform-origin: 52% 50%;
+  transform: perspective(1200px) rotateY(-4deg) rotateX(1deg) translate3d(0, 0, 0) scale(1);
+  animation: vv-hero-image-float 8s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes vv-hero-image-float {
+  0%, 100% {
+    transform: perspective(1200px) rotateY(-4deg) rotateX(1deg) translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: perspective(1200px) rotateY(-1.5deg) rotateX(2deg) translate3d(0, -6px, 10px) scale(1.012);
+  }
+}
+
+@media (max-width: 700px) {
+  .vv-c-home .vv-hero-showcase .vv-hero-image.is-active {
+    transform: none;
+    animation: vv-hero-image-float-mobile 8s ease-in-out infinite;
+  }
+
+  @keyframes vv-hero-image-float-mobile {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.006); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vv-c-home .vv-hero-showcase .vv-hero-image.is-active {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
 }
 @media (max-width: 700px) {
   .vv-c-home .vv-train-track > .grid { grid-template-columns: 1fr; }
