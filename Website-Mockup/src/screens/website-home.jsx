@@ -93,9 +93,6 @@ export function WebsiteHome() {
   return (
     <div className="vv-c-home h-full overflow-y-auto">
       <section className="vv-market-hero relative overflow-hidden text-white">
-        <div className="vv-hero-leaf vv-hero-leaf-a" style={{ '--leaf-turn': '35deg' }} />
-        <div className="vv-hero-leaf vv-hero-leaf-b" style={{ '--leaf-turn': '-20deg' }} />
-        <div className="vv-hero-leaf vv-hero-leaf-c" />
         <div className="vv-hero-waves"><div><svg viewBox="0 0 2400 60" preserveAspectRatio="none"><path d="M0 30C150 0 350 60 600 30S1050 0 1200 30C1350 0 1550 60 1800 30S2250 0 2400 30V60H0z" fill="rgba(255,255,255,.5)" /></svg></div><div><svg viewBox="0 0 2400 60" preserveAspectRatio="none"><path d="M0 38C200 10 400 60 600 38S1000 10 1200 38C1400 10 1600 60 1800 38S2200 10 2400 38V60H0z" fill="rgba(255,255,255,.55)" /></svg></div></div>
         <div className="absolute -right-28 -top-32 size-[28rem] rounded-full bg-brand-500/20 blur-3xl" />
         <div className="absolute -bottom-40 left-[35%] size-[26rem] rounded-full bg-cyan-400/10 blur-3xl" />
