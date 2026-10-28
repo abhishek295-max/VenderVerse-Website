@@ -177,25 +177,43 @@ export function Category({ params }) {
 
 /* ================= EXPLORE / SEARCH ================= */
 const DEFAULT_F = { min: '', max: '', stock: false, verified: false, city: 'Any', rating: 0, sort: 'relevance' }
+function CoverageFilter({ value, onChange, t, lang }) {
+  return <div><p className="mb-2 text-[13px] font-semibold text-ink-700">{lang === 'hi' ? 'खोज का दायरा' : 'Discovery coverage'}</p><div className="grid grid-cols-2 gap-2">{[['local', 'local', 'nearCity'], ['nationwide', 'nationwide', 'acrossCountry'], ['worldwide', 'worldwide', 'international'], ['remote', 'remote', 'anywhere']].map(([id, label, desc]) => <button key={id} onClick={() => onChange(id)} className={cx('rounded-xl border px-3 py-2.5 text-left transition', value === id ? 'border-brand-500 bg-brand-50 text-brand-800' : 'border-ink-200 bg-white text-ink-700')}><span className="block text-sm font-bold">{t(label)}</span><span className="block text-[11px] opacity-70">{t(desc)}</span></button>)}</div></div>
+}
 export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = false }) {
   const nav = useNav()
-  const { listings, vendors, compare, toggleCompare, me, setMe } = useApp()
+  const { listings, vendors, compare, toggleCompare, me, setMe, locale, lang, t } = useApp()
   const [q, setQ] = useState(params.q || '')
   const [mode, setMode] = useState(params.mode || 'all')
   const [c, setC] = useState(params.cat || 'all')
   const [f, setF] = useState(DEFAULT_F)
   const [draft, setDraft] = useState(DEFAULT_F)
+  const [coverage, setCoverage] = useState(params.coverage || locale.coverage || 'local')
+  const [subcategory, setSubcategory] = useState('all')
   const [open, setOpen] = useState(false)
-  const applied = [f.min || f.max, f.stock, f.verified, f.city !== 'Any', f.rating > 0, f.sort !== 'relevance'].filter(Boolean).length
+  const applied = [coverage !== 'local', f.min || f.max, f.stock, f.verified, f.city !== 'Any', f.rating > 0, f.sort !== 'relevance'].filter(Boolean).length
   const match = (s) => s.toLowerCase().includes(q.toLowerCase())
   const supplierOnly = supplierOnlyOverride ?? (me.role === 'vendor' && me.buyerMode)
   const isBusinessSupplier = (id) => ['v-me', 'v-global-2'].includes(id)
+  const coverageMatch = (v) => {
+    const city = locale.city || 'Jaipur'
+    const country = locale.countryName || 'India'
+    const remote = v.remote || v.areas?.some((x) => String(x).toLowerCase() === 'remote')
+    if (coverage === 'remote') return remote
+    if (remote) return false
+    if (coverage === 'local') return v.city === city || v.areas?.includes(city)
+    if (coverage === 'nationwide') return (v.country || 'India') === country && !(v.city === city || v.areas?.includes(city))
+    if (coverage === 'worldwide') return (v.country || 'India') !== country
+    return true
+  }
 
   const items = useMemo(() => {
     let r = listings.filter((l) => l.status === 'approved' && (!supplierOnly || isBusinessSupplier(l.vendorId)))
+    r = r.filter((l) => coverageMatch(vendors.find((v) => v.id === l.vendorId) || {}))
     if (mode === 'products') r = r.filter((l) => l.type === 'product')
     if (mode === 'services') r = r.filter((l) => l.type === 'service')
     if (c !== 'all') r = r.filter((l) => l.cat === c)
+    if (subcategory !== 'all') r = r.filter((l) => l.sub === subcategory)
     if (q) r = r.filter((l) => match(l.title) || match(l.sub) || match(cat(l.cat).name) || match(vendors.find((v) => v.id === l.vendorId)?.name || ''))
     if (f.min) r = r.filter((l) => l.price >= +f.min)
     if (f.max) r = r.filter((l) => l.price <= +f.max)
@@ -207,17 +225,17 @@ export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = fa
     if (f.sort === 'high') r = [...r].sort((a, b) => b.price - a.price)
     if (f.sort === 'rating') r = [...r].sort((a, b) => b.rating - a.rating)
     return r
-  }, [listings, vendors, mode, c, q, f, supplierOnly])
+  }, [listings, vendors, mode, c, subcategory, q, f, supplierOnly, coverage, locale.city, locale.countryName])
 
   const vs = useMemo(() => {
-    let r = visibleVendors(vendors).filter((v) => !supplierOnly || isBusinessSupplier(v.id))
+    let r = visibleVendors(vendors).filter((v) => !supplierOnly || isBusinessSupplier(v.id)).filter(coverageMatch)
     if (c !== 'all') r = r.filter((v) => v.cat === c)
     if (q) r = r.filter((v) => match(v.name) || match(cat(v.cat).name) || match(v.city))
     if (f.verified) r = r.filter((v) => v.status === 'approved')
     if (f.city !== 'Any') r = r.filter((v) => v.areas.includes(f.city))
     if (f.rating) r = r.filter((v) => v.rating >= f.rating)
     return r
-  }, [vendors, c, q, f, supplierOnly])
+  }, [vendors, c, q, f, supplierOnly, coverage, locale.city, locale.countryName])
 
   const showVendors = mode === 'all' || mode === 'vendors'
   const showItems = mode !== 'vendors'
@@ -227,7 +245,14 @@ export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = fa
       back={false}
       pad={false}
       overlay={
-        <Sheet open={open} onClose={() => setOpen(false)} title="Filters" footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => setDraft(DEFAULT_F)}>Reset</Button><Button className="flex-[2]" onClick={() => { setF(draft); setOpen(false) }}>Show results</Button></div>}>
+        <Sheet open={open} onClose={() => setOpen(false)} title="Filters" footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => { setDraft(DEFAULT_F); setF(DEFAULT_F); setCoverage('local'); setC('all'); setSubcategory('all') }}>Reset</Button><Button className="flex-[2]" onClick={() => { setF(draft); setOpen(false) }}>Show results</Button></div>}>
+          <div>
+            <CoverageFilter value={coverage} onChange={setCoverage} t={t} lang={lang} />
+          </div>
+          <div>
+            <Select label="Category" value={c} onChange={(e) => { setC(e.target.value); setSubcategory('all') }} options={[{ value: 'all', label: t('allCategories') }, ...CATS.map((x) => ({ value: x.id, label: lang === 'hi' ? x.hi : x.name }))]} />
+            <div className="mt-3"><Select label="Subcategory" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} options={[{ value: 'all', label: 'All subcategories' }, ...(CATS.find((x) => x.id === c)?.subs || []).map((x) => ({ value: x, label: x }))]} /></div>
+          </div>
           <div>
             <p className="mb-2 text-[13px] font-semibold text-ink-700">Price range (₹)</p>
             <div className="flex gap-3"><Input placeholder="Min" inputMode="numeric" value={draft.min} onChange={(e) => setDraft({ ...draft, min: e.target.value.replace(/\D/g, '') })} /><Input placeholder="Max" inputMode="numeric" value={draft.max} onChange={(e) => setDraft({ ...draft, max: e.target.value.replace(/\D/g, '') })} /></div>
@@ -248,12 +273,36 @@ export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = fa
           </button>
         } />
         <div className="vv-explore-modes"><Segmented value={mode} onChange={setMode} options={[{ id: 'all', label: 'All' }, { id: 'products', label: 'Products' }, { id: 'services', label: 'Services' }, ...(!hideVendorMode ? [{ id: 'vendors', label: 'Vendors' }] : [])]} /></div>
-        <div className="vv-explore-categories"><Chips value={c} onChange={setC} options={[{ id: 'all', label: 'All categories' }, ...CATS.map((x) => ({ id: x.id, label: x.name }))]} /></div>
+        <div className="vv-explore-categories" aria-label="Browse categories">
+          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={c === 'all'}
+              onClick={() => { setC('all'); setSubcategory('all') }}
+              className={cx('shrink-0 text-sm font-bold', c === 'all' ? 'bg-ink-900 text-white' : 'bg-white text-ink-700')}
+            >
+              {lang === 'hi' ? 'सभी श्रेणियां' : 'All categories'}
+            </button>
+            {CATS.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                role="tab"
+                aria-selected={c === category.id}
+                onClick={() => { setC(category.id); setSubcategory('all') }}
+                className={cx('shrink-0 text-sm font-bold', c === category.id ? 'bg-ink-900 text-white' : 'bg-white text-ink-700')}
+              >
+                {lang === 'hi' ? category.hi : category.name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
       <div className="vv-explore-results space-y-4 p-4">
         <div className="flex items-center justify-between text-xs text-ink-500">
           <span>{(showItems ? items.length : 0) + (showVendors ? vs.length : 0)} results{q && <> for “<b className="text-ink-800">{q}</b>”</>}</span>
-          {(applied > 0 || c !== 'all' || q) && <button className="font-bold text-brand-700" onClick={() => { setF(DEFAULT_F); setC('all'); setQ('') }}>Clear all</button>}
+          {(applied > 0 || c !== 'all' || q) && <button className="font-bold text-brand-700" onClick={() => { setF(DEFAULT_F); setC('all'); setQ(''); setCoverage('local') }}>{t('clearAll')}</button>}
         </div>
         {showVendors && vs.length > 0 && (
           <Section title={mode === 'vendors' ? undefined : supplierOnly ? 'Business suppliers' : 'Vendors'}><div className="vv-explore-card-grid">{vs.map((v) => <VendorRow key={v.id} v={v} />)}</div></Section>
@@ -264,7 +313,7 @@ export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = fa
           </Section>
         )}
         {(showItems ? items.length : 0) + (showVendors ? vs.length : 0) === 0 && (
-          <EmptyState icon={Search} title="No matches found" body="Try different keywords, remove filters, or post a requirement and let vendors come to you." action={<Button size="sm" onClick={() => nav.go('c_rfq_new')}>Request quotation</Button>} />
+          <EmptyState icon={Search} title={t('noMatches')} body={lang === 'hi' ? 'अलग शब्द आज़माएं, फ़िल्टर हटाएं या आवश्यकता पोस्ट करें।' : 'Try different keywords, remove filters, or post a requirement and let vendors come to you.'} action={<Button size="sm" onClick={() => nav.go('c_rfq_new')}>{t('requestQuote')}</Button>} />
         )}
       </div>
     </Screen>

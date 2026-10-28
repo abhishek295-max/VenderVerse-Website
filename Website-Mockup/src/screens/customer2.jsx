@@ -44,7 +44,7 @@ export function RfqNew({ params = {} }) {
   const nav = useNav()
   const { me, vendor, rfqs, setRfqs, notify, toast } = useApp()
   const targetVendor = params.vendorId ? vendor(params.vendorId) : null
-  const [f, setF] = useState({ title: params.title ? `Bulk quote: ${params.title}` : '', cats: [params.cat || 'elec'], qty: '', budget: '', deadline: dateAfterISO(7), country: 'India', state: 'Rajasthan', city: 'Jaipur', pincode: '', desc: '', invite: !params.vendorId, categoryBudgets: { [params.cat || 'elec']: '' } })
+  const [f, setF] = useState({ title: params.title ? `Bulk quote: ${params.title}` : '', cats: params.cat ? [params.cat] : [], qty: '', budget: '', deadline: dateAfterISO(7), country: 'India', state: 'Rajasthan', city: 'Jaipur', pincode: '', desc: '', invite: !params.vendorId, categoryBudgets: params.cat ? { [params.cat]: '' } : {} })
   const [files, setFiles] = useState([])
   const [errs, setErrs] = useState({})
   const set = (k) => (e) => { setF({ ...f, [k]: e?.target ? e.target.value : e }); setErrs({ ...errs, [k]: '' }) }
@@ -53,6 +53,7 @@ export function RfqNew({ params = {} }) {
     if (f.title.trim().length < 5) e.title = 'Add a short title (min 5 characters)'
     if (!f.qty.trim()) e.qty = 'Enter the quantity required'
     if (!f.cats.length) e.cats = 'Select at least one category'
+    if (f.cats.some((id) => !String(f.categoryBudgets[id] || '').trim())) e.categoryBudgets = 'Add a budget amount for every selected category'
     if (!f.country.trim() || !f.state.trim() || !f.city.trim() || !f.pincode.trim()) e.location = 'Complete country, state/province, city and postal code'
     if (f.desc.trim().length < 15) e.desc = 'Describe your requirement (min 15 characters)'
     if (!f.deadline || f.deadline < new Date().toISOString().slice(0, 10)) e.deadline = 'Choose a current or future deadline'
@@ -72,7 +73,7 @@ export function RfqNew({ params = {} }) {
   return (
     <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Get quotes from verified vendors'} footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
       <Input label="What do you need?" required placeholder="e.g. 200 LED panel lights for office" value={f.title} onChange={set('title')} error={errs.title} />
-      <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Categories required</p><Chips multi value={f.cats} onChange={(cats) => { const categoryBudgets = { ...f.categoryBudgets }; cats.forEach((id) => { if (!(id in categoryBudgets)) categoryBudgets[id] = '' }); setF({ ...f, cats, categoryBudgets }); setErrs({ ...errs, cats: '' }) }} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />{errs.cats && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.cats}</p>}</div>
+      <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Categories required <span className="text-red-500">*</span></p><Chips multi value={f.cats} onChange={(cats) => { const categoryBudgets = Object.fromEntries(cats.map((id) => [id, f.categoryBudgets[id] || ''])); setF({ ...f, cats, categoryBudgets }); setErrs({ ...errs, cats: '', categoryBudgets: '' }) }} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />{errs.cats && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.cats}</p>}</div>
       {f.cats.length > 0 && <Card><p className="text-sm font-bold text-ink-900">Budget by category</p><p className="mt-1 text-xs text-ink-500">Allocate the total RFQ budget across selected categories.</p><div className="mt-3 space-y-2.5">{f.cats.map((id) => <Input key={id} label={cat(id).name} prefix="₹" placeholder="Amount" inputMode="numeric" value={f.categoryBudgets[id] || ''} onChange={(e) => setF({ ...f, categoryBudgets: { ...f.categoryBudgets, [id]: e.target.value } })} />)}</div></Card>}
       <div className="flex gap-3"><Input label="Quantity" required placeholder="200 units" value={f.qty} onChange={set('qty')} error={errs.qty} /><Input label="Budget (₹)" placeholder="1,20,000" inputMode="numeric" value={f.budget} onChange={set('budget')} /></div>
       <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Global delivery location</p><div className="grid gap-3 sm:grid-cols-2"><Input label="Country" required value={f.country} onChange={set('country')} /><Input label="State / Province" required value={f.state} onChange={set('state')} /><Input label="City" required value={f.city} onChange={set('city')} /><Input label="Postal / Pincode" required value={f.pincode} onChange={set('pincode')} inputMode="numeric" /></div>{errs.location && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.location}</p>}</div>

@@ -37,9 +37,10 @@ export function Splash() {
     <div onClick={() => nav.reset('welcome')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-ink-900 text-white">
       <div className="absolute -left-20 -top-20 size-72 rounded-full bg-white/10" />
       <div className="absolute -bottom-24 -right-16 size-80 rounded-full bg-white/5" />
-      <div className="animate-fade-in"><Logo size={92} light /></div>
+      <div className="vv-splash-loader"><div className="vv-splash-orbit vv-splash-orbit-a" /><div className="vv-splash-orbit vv-splash-orbit-b" /><div className="vv-splash-core"><Logo size={78} light /></div></div>
       <h1 className="mt-5 text-3xl font-extrabold tracking-tight">VendorVerse</h1>
-      <p className="mt-1.5 text-sm text-white/75">Products · Services · Quotes</p>
+      <p className="mt-1.5 text-sm text-white/75">Global Marketplace · Products · Services · Quotes</p>
+      <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-white/65"><span className="size-2 animate-pulse rounded-full bg-teal-300" />Preparing your marketplace</div>
       <p className="absolute bottom-10 text-[11px] tracking-widest text-white/50">ADRSTECHNO PRIVATE LIMITED</p>
     </div>
   )

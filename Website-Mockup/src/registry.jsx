@@ -75,7 +75,7 @@ export const SCREENS = Object.fromEntries([
   R('a_profile', A.AgentProfile, 'agent', 'Profile', ['FR-02', 'FR-12'], { tab: true }),
 
   // ---- super admin ----
-  R('ad_dash', AD.AdminDashboard, 'admin', 'Dashboard', ['FR-13'], { tab: true, bar: 'ink' }),
+  R('ad_dash', AD.AdminReferenceDashboard, 'admin', 'Dashboard', ['FR-13'], { tab: true, bar: 'ink' }),
   R('ad_approvals', AD.Approvals, 'admin', 'Approvals hub', ['FR-03', 'FR-04', 'FR-11'], { tab: true }),
   R('ad_vendors', AD.AdminVendors, 'admin', 'Vendor verification queue', ['FR-03']),
   R('ad_vendor_new', AD.AdminVendorNew, 'admin', 'Add vendor or business supplier', ['FR-03']),
@@ -95,6 +95,21 @@ export const SCREENS = Object.fromEntries([
   R('ad_settings', AD.AdminSettings, 'admin', 'Platform settings', ['FR-14']),
   R('ad_audit', AD.AuditLog, 'admin', 'Audit log', ['FR-15']),
   R('ad_more', AD.AdminMore, 'admin', 'More', ['FR-02'], { tab: true }),
+  R('ad_analytics', AD.AdminReports, 'admin', 'Analytics', ['FR-13']),
+  R('ad_customers', AD.UsersScreen, 'admin', 'Customers', ['FR-02'], { defaultParams: { role: 'Customer' } }),
+  R('ad_notifications', AD.AdminFeature, 'admin', 'Send notification', [], { defaultParams: { kind: 'notifications', title: 'Send notification' } }),
+  R('ad_coupons', AD.AdminSettings, 'admin', 'Coupons', ['FR-14']),
+  R('ad_photo_approvals', AD.AdminListings, 'admin', 'Photo approvals', ['FR-04']),
+  R('ad_previous', AD.AuditLog, 'admin', 'Previous work', ['FR-15']),
+  R('ad_profile_images', AD.AdminFeature, 'admin', 'Profile images', [], { defaultParams: { kind: 'profile-images', title: 'Profile images' } }),
+  R('ad_shop_leads', AD.AdminAgents, 'admin', 'Shop leads', ['FR-12']),
+  R('ad_faqs', AD.AdminFeature, 'admin', 'FAQs', [], { defaultParams: { kind: 'faqs', title: 'FAQs' } }),
+  R('ad_requirements', AD.AdminRfqWorkspace, 'admin', 'Requirements', [], { defaultParams: { kind: 'requirements' } }),
+  R('ad_supply_gaps', AD.AdminRfqWorkspace, 'admin', 'Supply gaps', [], { defaultParams: { kind: 'supply-gaps' } }),
+  R('ad_quote_moderation', AD.AdminRfqWorkspace, 'admin', 'Quote moderation', [], { defaultParams: { kind: 'quote-moderation' } }),
+  R('ad_category_templates', AD.AdminCategories, 'admin', 'Category templates', ['FR-04']),
+  R('ad_rfq_health', AD.AdminReports, 'admin', 'RFQ health', ['FR-13']),
+  R('ad_platform_settings', AD.AdminSettings, 'admin', 'Platform settings', ['FR-14']),
 ])
 
 export const GROUPS = [

@@ -30,8 +30,10 @@ const DICT = {
     login: 'Log in', continue: 'Continue', welcomeTitle: 'One marketplace for products, services & quotes',
     welcomeBody: 'Order products, book services and compare vendor quotations — all in one place.',
     browse: 'Browse without login', language: 'Language', logout: 'Log out',
+    local: 'Local', nationwide: 'Nationwide', worldwide: 'Worldwide', remote: 'Remote', nearCity: 'Near your city', acrossCountry: 'Across your country', international: 'International suppliers', anywhere: 'Work from anywhere', searchLocation: 'Search location', location: 'Location', allCategories: 'All categories', allResults: 'All results', products: 'Products', services: 'Services', vendors: 'Vendors', clearAll: 'Clear all', noMatches: 'No matches found', requestQuote: 'Request quotation', marketplaceTag: 'A trusted global marketplace', heroTitle: 'Find the right vendor. Get work moving.', heroBody: 'Discover verified suppliers and service professionals, compare quotations, and talk directly to the people who can help.', searchMarketplace: 'Search marketplace', browseNeed: 'Browse by need', exploreCategories: 'Explore categories', featuredVendors: 'Featured verified vendors', browseVendors: 'Browse vendors', popularProducts: 'Products and services', viewMarketplace: 'View marketplace', universalTitle: 'Find the right kind of partner', universalBody: 'Services, products, sourcing and recurring business relationships in one place.', discoveryTitle: 'Choose how far you want to search', discoveryBody: 'Change location here on Home. Currency updates automatically when the country changes.', progressTitle: 'No confusing dead ends', progressEyebrow: 'Clear progress, at every step', businessBuying: 'Business buying', compareQuotes: 'Compare quotations', scheduled: 'Scheduled', instant: 'Instant', vendorSourcing: 'Vendor-to-vendor sourcing', statusLoading: 'Loading', statusNoMatch: 'No match yet', statusAttention: 'Needs attention', statusReview: 'In review', statusCompleted: 'Completed', statusProtected: 'Protected', globalPicks: 'GLOBAL PICKS', popularWorldwide: 'Popular worldwide', exploreAll: 'Explore all listings', verifiedQuality: 'Chosen for quality', evidenceVerified: 'Verified before they are featured', directConversations: 'Direct conversations', evidenceBased: 'Evidence-based verification', changeLocationHome: 'Change location here on Home. Other pages keep this selection read-only.', locationSearchLabel: 'Search by location', homeSearchPlaceholder: 'Try electrical supplies or home cleaning', statusLoadingBody: 'We are finding matching vendors and will keep your request visible.', statusNoMatchBody: 'No quotes received? Expand coverage or refine the requirement.', statusAttentionBody: 'Rejected, expired, cancelled or payment-failed items show the next action clearly.', statusReviewBody: 'Documents and complaints show who is reviewing them.', statusCompletedBody: 'Eligible completed orders unlock reviews and tax invoice details.', statusProtectedBody: 'Disputes, refunds and settlements remain linked to the order.',
   },
   hi: {
+    local: 'स्थानीय', nationwide: 'देशव्यापी', worldwide: 'विश्वव्यापी', remote: 'रिमोट', nearCity: 'आपके शहर के पास', acrossCountry: 'पूरे देश में', international: 'अंतरराष्ट्रीय आपूर्तिकर्ता', anywhere: 'कहीं से भी काम', searchLocation: 'स्थान खोजें', location: 'स्थान', allCategories: 'सभी श्रेणियां', allResults: 'सभी परिणाम', products: 'उत्पाद', services: 'सेवाएं', vendors: 'वेंडर', clearAll: 'सभी हटाएं', noMatches: 'कोई मिलान नहीं मिला', requestQuote: 'कोटेशन मांगें', marketplaceTag: 'एक विश्वसनीय वैश्विक मार्केटप्लेस', heroTitle: 'सही वेंडर खोजें। काम शुरू करें।', heroBody: 'सत्यापित आपूर्तिकर्ताओं और सेवा विशेषज्ञों को खोजें, कोटेशन की तुलना करें और सीधे बात करें।', searchMarketplace: 'मार्केटप्लेस खोजें', browseNeed: 'ज़रूरत के अनुसार खोजें', exploreCategories: 'श्रेणियां देखें', featuredVendors: 'सत्यापित वेंडर', browseVendors: 'वेंडर देखें', popularProducts: 'उत्पाद और सेवाएं', viewMarketplace: 'मार्केटप्लेस देखें', universalTitle: 'सही भागीदार खोजें', universalBody: 'सेवाएं, उत्पाद, सोर्सिंग और नियमित व्यावसायिक संबंध एक ही जगह।', discoveryTitle: 'खोज का दायरा चुनें', discoveryBody: 'स्थान बदलने पर मुद्रा अपने आप अपडेट होगी।', progressTitle: 'कोई भ्रम नहीं', progressEyebrow: 'हर चरण में स्पष्ट प्रगति', businessBuying: 'व्यावसायिक खरीद', compareQuotes: 'कोटेशन की तुलना', scheduled: 'निर्धारित', instant: 'तुरंत', vendorSourcing: 'वेंडर से वेंडर सोर्सिंग', statusLoading: 'लोड हो रहा है', statusNoMatch: 'अभी कोई मिलान नहीं', statusAttention: 'ध्यान आवश्यक', statusReview: 'समीक्षा में', statusCompleted: 'पूरा हुआ', statusProtected: 'सुरक्षित', globalPicks: 'वैश्विक चयन', popularWorldwide: 'दुनियाभर में लोकप्रिय', exploreAll: 'सभी लिस्टिंग देखें', verifiedQuality: 'गुणवत्ता के लिए चुने गए', evidenceVerified: 'फीचर करने से पहले सत्यापित', directConversations: 'सीधी बातचीत', evidenceBased: 'दस्तावेज़ आधारित सत्यापन', changeLocationHome: 'स्थान बदलने के लिए होम का उपयोग करें।', locationSearchLabel: 'स्थान के अनुसार खोजें', homeSearchPlaceholder: 'इलेक्ट्रिकल सप्लाई या होम क्लीनिंग खोजें', statusLoadingBody: 'हम सही वेंडर खोज रहे हैं और आपका अनुरोध दिखाई देता रहेगा।', statusNoMatchBody: 'कोटेशन नहीं मिला? दायरा बढ़ाएं या आवश्यकता बदलें।', statusAttentionBody: 'अस्वीकृत, समाप्त, रद्द या भुगतान-विफल आइटम में अगला कदम दिखेगा।', statusReviewBody: 'दस्तावेज़ और शिकायतों की समीक्षा की स्थिति दिखाई देगी।', statusCompletedBody: 'पूरे हुए ऑर्डर के बाद रिव्यू और टैक्स इनवॉइस उपलब्ध होंगे।', statusProtectedBody: 'विवाद, रिफंड और सेटलमेंट ऑर्डर से जुड़े रहेंगे।',
     home: 'होम', explore: 'खोजें', activity: 'गतिविधि', messages: 'संदेश', profile: 'प्रोफ़ाइल',
     dashboard: 'डैशबोर्ड', work: 'काम', listings: 'लिस्टिंग', more: 'और', leads: 'लीड्स', followups: 'फॉलो-अप', earnings: 'कमाई',
     approvals: 'अनुमोदन', users: 'यूज़र', reports: 'रिपोर्ट',
@@ -44,13 +46,39 @@ const DICT = {
   },
 }
 
+export const COUNTRY_SETTINGS = {
+  India: { country: 'IN', currency: 'INR', timeZone: 'Asia/Kolkata' },
+  'United Arab Emirates': { country: 'AE', currency: 'AED', timeZone: 'Asia/Dubai' },
+  'United Kingdom': { country: 'GB', currency: 'GBP', timeZone: 'Europe/London' },
+  'United States': { country: 'US', currency: 'USD', timeZone: 'America/New_York' },
+  Germany: { country: 'DE', currency: 'EUR', timeZone: 'Europe/Berlin' },
+  China: { country: 'CN', currency: 'CNY', timeZone: 'Asia/Shanghai' },
+}
+
+export const LOCATION_PRESETS = {
+  India: { state: 'Rajasthan', city: 'Jaipur' },
+  'United Arab Emirates': { state: 'Dubai', city: 'Dubai' },
+  'United Kingdom': { state: 'England', city: 'London' },
+  'United States': { state: 'New York', city: 'New York' },
+  Germany: { state: 'Bavaria', city: 'Munich' },
+  China: { state: 'Guangdong', city: 'Shenzhen' },
+}
+
+const normalizeLocale = (value) => {
+  const l = value || {}
+  const preset = LOCATION_PRESETS[l.countryName] || LOCATION_PRESETS.India
+  const states = ['Rajasthan', 'Delhi', 'Maharashtra', 'Dubai', 'England', 'New York', 'Bavaria', 'Guangdong']
+  const cities = ['Jaipur', 'Delhi', 'Mumbai', 'Dubai', 'London', 'New York', 'Munich', 'Berlin', 'Shenzhen', 'Shanghai', 'Bengaluru']
+  return l.countryName && l.countryName !== 'India' && (states.includes(l.state) || cities.includes(l.city)) ? { ...l, ...preset } : l
+}
+
 export function AppProvider({ children, initialMe }) {
   const seed = useMemo(() => ({
     me: { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest', accountState: 'active', buyerMode: false },
     customCategories: [],
     categoryOverrides: {},
     industries: ['Construction & Infrastructure', 'Electrical & Energy', 'Office & Technology', 'Home & Facilities', 'Food & Events', 'Professional Services'],
-    lang: 'en', locale: { country: 'IN', currency: 'INR', timeZone: 'Asia/Kolkata' }, vendors: VENDORS0, listings: LISTINGS0, orders: ORDERS0,
+    lang: 'en', locale: { country: 'IN', countryName: 'India', state: 'Rajasthan', city: 'Jaipur', currency: 'INR', timeZone: 'Asia/Kolkata', coverage: 'local' }, vendors: VENDORS0, listings: LISTINGS0, orders: ORDERS0,
     bookings: BOOKINGS0, rfqs: RFQS0, leads: LEADS0, commissions: COMMISSIONS0, disputes: DISPUTES0, users: USERS0, agents: AGENTS0,
     audit: AUDIT0, notifs: NOTIFS0, threads: THREADS0, settings: SETTINGS0, reviews: REVIEWS0, saved: ['l3', 'l11', 'v7'], compare: [],
     reviewed: [], prefs: { orders: true, bookings: true, quotes: true, promos: false, quiet: false },
@@ -58,7 +86,7 @@ export function AppProvider({ children, initialMe }) {
   const restored = useMemo(() => loadState(seed), [seed])
   const [me, setMe] = useState(initialMe || restored.me)
   const [lang, setLang] = useState(restored.lang)
-  const [locale, setLocale] = useState(restored.locale)
+  const [locale, setLocale] = useState(() => normalizeLocale(restored.locale))
   const [vendors, setVendors] = useState(restored.vendors)
   const [listings, setListings] = useState(restored.listings)
   const [orders, setOrders] = useState(restored.orders)

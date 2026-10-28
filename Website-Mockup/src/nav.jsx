@@ -5,7 +5,7 @@ export const useNav = () => useContext(NavCtx)
 
 /* Minimal stack navigator: go (push), back (pop), reset (replace whole stack), replace (swap top). */
 export function NavProvider({ children, fallbackHome }) {
-  const [stack, setStack] = useState([{ id: 'c_home', p: {} }])
+  const [stack, setStack] = useState([{ id: 'splash', p: {} }])
   const [dir, setDir] = useState('reset')
 
   const go = useCallback((id, p = {}) => { setDir('push'); setStack((s) => [...s, { id, p }]) }, [])

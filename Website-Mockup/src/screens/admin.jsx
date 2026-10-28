@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   ShieldCheck, Package, Users, Store, CalendarCheck, FileText, IndianRupee, UserPlus, AlertTriangle, ChevronRight, Check, X, Layers, Tag, Settings,
   ScrollText, LogOut, BarChart3, Download, Plus, Trash2, Lock, Percent, MapPin, Gift, Bell, Gavel, Wallet, Search, Eye, Ban, RotateCcw, KeyRound, Briefcase,
-  CircleDollarSign, CheckCircle2, ListChecks, BadgeCheck, MessageSquareWarning, MessageSquare, Sparkles,
+  CircleDollarSign, CheckCircle2, ListChecks, ClipboardCheck, GitBranch, FileSearch, BadgeCheck, MessageSquareWarning, MessageSquare, Sparkles,
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
@@ -52,6 +52,83 @@ export function AdminDashboard() {
       </div>
     </Screen>
   )
+}
+
+export function AdminReferenceDashboard() {
+  const nav = useNav()
+  const { vendors, rfqs, listings, disputes, agents, users, toast } = useApp()
+  const approved = vendors.filter((v) => v.status === 'approved')
+  const pending = vendors.filter((v) => ['submitted', 'info'].includes(v.status))
+  const openDisputes = disputes.filter((d) => ['open', 'under_review', 'escalated'].includes(d.status))
+  const recent = vendors.filter((v) => ['approved', 'submitted', 'info'].includes(v.status)).slice(-5).reverse()
+  const health = [['Active vendors', approved.length, vendors.length ? Math.round((approved.length / vendors.length) * 100) : 0, 'bg-emerald-500'], ['Incomplete vendors', pending.length, vendors.length ? Math.round((pending.length / vendors.length) * 100) : 0, 'bg-amber-400'], ['Active agents', agents.filter((a) => a.status === 'active').length, agents.length ? Math.round((agents.filter((a) => a.status === 'active').length / agents.length) * 100) : 0, 'bg-rose-500']]
+  return <Screen headerless pad={false}><div className="vv-admin-reference-dashboard"><div className="vv-admin-reference-heading"><div><p>Live platform overview</p><h1>Admin Dashboard</h1></div><Badge tone="green">Live</Badge></div><div className="vv-admin-reference-kpis"><Stat label="Total vendors" value={vendors.length} icon={Store} tone="violet" delta={`↗ ${approved.length} active`} onClick={() => nav.go('ad_vendors')} /><Stat label="Registered agents" value={agents.length} icon={Users} tone="rose" delta={`↗ ${agents.filter((a) => a.status === 'active').length} active`} onClick={() => nav.go('ad_agents')} /><Stat label="Open disputes" value={openDisputes.length} icon={Gavel} tone="amber" delta="↗ Check disputes page" onClick={() => nav.go('ad_disputes')} /><Stat label="Platform status" value="Live" icon={MessageSquare} tone="emerald" delta="↗ All systems ready" onClick={() => toast('All platform systems are running')} /></div><div className="vv-admin-reference-grid"><Card className="vv-admin-reference-panel !p-0"><div className="vv-admin-reference-panel-head"><div><h2>Recent vendors</h2><p>Latest accounts and verification activity</p></div><Button size="sm" variant="secondary" onClick={() => nav.go('ad_vendors')}>View all</Button></div><div className="vv-admin-reference-table-head"><span>Vendor</span><span>Owner</span><span>Category</span><span>Status</span></div>{recent.map((v) => <button key={v.id} onClick={() => nav.go('ad_vendor', { id: v.id })} className="vv-admin-reference-row"><span className="font-bold">{v.name}</span><span>{v.owner}</span><span>{cat(v.cat).name}</span><StatusBadge s={v.status} /></button>)}{!recent.length && <EmptyState icon={Store} title="No vendors yet" />}</Card><div className="space-y-4"><Card className="vv-admin-reference-panel"><h2>Platform health</h2>{health.map(([label, value, pct, color]) => <div key={label} className="mt-4"><div className="flex justify-between text-xs font-semibold text-ink-600"><span>{label}</span><span>{value}</span></div><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100"><div className={cx('h-full rounded-full', color)} style={{ width: `${Math.max(pct, value ? 8 : 0)}%` }} /></div></div>)}</Card><Card className="vv-admin-reference-panel"><h2>Pending moderation</h2><button onClick={() => nav.go('ad_disputes')} className="vv-admin-moderation-row text-amber-800"><Gavel size={16} />{openDisputes.length} open disputes <ChevronRight size={15} /></button><button onClick={() => nav.go('ad_vendors')} className="vv-admin-moderation-row text-rose-800"><ShieldCheck size={16} />{pending.length} incomplete vendors <ChevronRight size={15} /></button><button onClick={() => nav.go('ad_listings')} className="vv-admin-moderation-row text-violet-800"><Package size={16} />{listings.filter((l) => l.status === 'pending').length} pending listings <ChevronRight size={15} /></button></Card></div></div><div className="vv-admin-reference-footer-stats"><button onClick={() => nav.go('ad_users')}><b>{users.length}</b><span>Registered users</span></button><button onClick={() => nav.go('ad_reports')}><b>{rfqs.length}</b><span>Active RFQs</span></button><button onClick={() => nav.go('ad_listings')}><b>{listings.filter((l) => l.status === 'approved').length}</b><span>Live listings</span></button></div></div></Screen>
+}
+
+export function AdminFeature({ params = {} }) {
+  const { addAudit, toast } = useApp()
+  const title = params.title || 'Admin workspace'
+  const [query, setQuery] = useState('')
+  const [newItem, setNewItem] = useState('')
+  const seed = { notifications: ['Vendor verification reminder', 'RFQ response deadline alert'], faqs: ['How verification works', 'How RFQ matching works'], translations: ['English marketplace copy', 'Hindi marketplace copy'], releases: ['Marketplace v1.4', 'RFQ workflow update'], 'assistant-intents': ['Find suppliers', 'Compare quotations'], planning: ['Weekly vendor review', 'RFQ quality audit'], requirements: ['LED lighting for warehouse', 'Recurring cleaning contract'], 'supply-gaps': ['Remote IT providers in Europe', 'Solar installers in Rajasthan'], 'quote-moderation': ['RFQ-315 quotation review', 'RFQ-320 supplier response'], 'profile-images': ['12 vendor profile images pending'] }[params.kind] || ['Review queue', 'Configuration checklist']
+  const [items, setItems] = useState(seed.map((name, i) => ({ id: i, name, status: i === 0 ? 'Needs attention' : 'Ready' })))
+  const filtered = items.filter((x) => x.name.toLowerCase().includes(query.toLowerCase()))
+  const add = () => { if (!newItem.trim()) return; const item = { id: Date.now(), name: newItem.trim(), status: 'New' }; setItems((all) => [item, ...all]); addAudit(`Created ${title.toLowerCase()} item`, item.name, 'setting'); toast('Item added'); setNewItem('') }
+  const actionLabel = params.kind === 'notifications' ? 'Send' : params.kind === 'faqs' ? 'Publish' : params.kind === 'profile-images' ? 'Approve' : params.kind === 'quote-moderation' ? 'Review' : 'Mark done'
+  const markDone = (item) => { setItems((all) => all.map((x) => x.id === item.id ? { ...x, status: 'Completed' } : x)); addAudit(`${actionLabel} ${title.toLowerCase()} item`, item.name, 'moderation'); toast(params.kind === 'notifications' ? 'Notification sent' : `${actionLabel} completed`) }
+  const remove = (item) => { setItems((all) => all.filter((x) => x.id !== item.id)); addAudit(`Deleted ${title.toLowerCase()} item`, item.name, 'moderation'); toast('Item deleted') }
+  return <Screen title={title} subtitle="Admin controls and review queue"><Banner tone="blue">This workspace is connected to the same browser-local admin state. Changes are recorded in the audit log.</Banner><SearchBar value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${title.toLowerCase()}`} /><Card><div className="flex gap-2"><Input className="flex-1" value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder={`Add ${title.toLowerCase()} item`} /><Button onClick={add} icon={Plus}>Add</Button></div></Card><Group>{filtered.map((item, i) => <ListRow key={item.id} icon={params.kind === 'notifications' ? Bell : ClipboardCheck} title={item.name} subtitle={item.status} right={<div className="flex items-center gap-2">{item.status !== 'Completed' ? <Button size="sm" variant="soft" onClick={() => markDone(item)}>{actionLabel}</Button> : <StatusBadge s="completed" />}{params.kind === 'profile-images' && <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(item)}>Delete</Button>}</div>} last={i === filtered.length - 1} />)}{!filtered.length && <EmptyState icon={Search} title="Nothing found" body="Try another search or add a new item." />}</Group></Screen>
+}
+
+export function AdminRfqWorkspace({ params = {} }) {
+  const { addAudit, toast } = useApp()
+  const kind = params.kind || 'requirements'
+  const configs = {
+    requirements: {
+      title: 'Requirements', subtitle: 'Review buyer requirements and matching readiness', icon: ClipboardCheck,
+      seed: [
+        { id: 'REQ-204', primary: 'LED lighting for warehouse', secondary: 'Nova Logistics Pvt Ltd · Electrical & Hardware', meta: 'Budget ₹1,20,000 · 200 units · Jaipur', status: 'New' },
+        { id: 'REQ-205', primary: 'Recurring office cleaning', secondary: 'Aria Workspace · Cleaning & Pest Control', meta: 'Monthly · Jaipur · Remote coordination', status: 'Matching' },
+      ],
+      action: 'Start matching', done: 'Matching started', add: 'Add requirement',
+    },
+    'supply-gaps': {
+      title: 'Supply gaps', subtitle: 'Find categories and locations where buyer demand is underserved', icon: GitBranch,
+      seed: [
+        { id: 'GAP-021', primary: 'Remote IT providers in Europe', secondary: 'Professional & IT Services · Worldwide', meta: '12 open requirements · 3 matched vendors', status: 'High priority' },
+        { id: 'GAP-022', primary: 'Solar installers in Rajasthan', secondary: 'Electrical & Energy · Nationwide', meta: '7 open requirements · 5 matched vendors', status: 'Monitor' },
+      ],
+      action: 'Mark addressed', done: 'Gap addressed', add: 'Add supply gap',
+    },
+    'quote-moderation': {
+      title: 'Quote moderation', subtitle: 'Review vendor quotations before buyer comparison', icon: FileSearch,
+      seed: [
+        { id: 'QTE-315', primary: 'BrightSpark Home Services', secondary: 'RFQ-315 · Electrical & Hardware', meta: '₹84,500 · Submitted 2 hours ago', status: 'Needs review' },
+        { id: 'QTE-320', primary: 'TechNova Systems', secondary: 'RFQ-320 · Office & IT Supplies', meta: '₹2,40,000 · MOQ 50 · Lead time 14 days', status: 'Needs review' },
+      ],
+      action: 'Approve quote', done: 'Quote approved', add: 'Add quote review',
+    },
+  }
+  const config = configs[kind] || configs.requirements
+  const [query, setQuery] = useState('')
+  const [items, setItems] = useState(config.seed)
+  const filtered = items.filter((item) => `${item.primary} ${item.secondary} ${item.meta}`.toLowerCase().includes(query.toLowerCase()))
+  const update = (item, status = 'Completed') => {
+    setItems((all) => all.map((x) => x.id === item.id ? { ...x, status } : x))
+    addAudit(config.action, item.primary, 'rfq')
+    toast(config.done)
+  }
+  return <Screen title={config.title} subtitle={config.subtitle}>
+    <Banner tone="blue">{kind === 'requirements' ? 'Requirements are matched with eligible vendors based on category, coverage and verification.' : kind === 'supply-gaps' ? 'Supply gaps highlight demand that needs more verified vendors or better geographic coverage.' : 'Only approved quotations move forward to buyer comparison and negotiation.'}</Banner>
+    <SearchBar value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${config.title.toLowerCase()}`} />
+    <div className="grid gap-3 sm:grid-cols-3">
+      <Card><p className="text-xs text-ink-500">Total records</p><p className="mt-1 text-2xl font-extrabold text-ink-900">{items.length}</p></Card>
+      <Card><p className="text-xs text-ink-500">Needs action</p><p className="mt-1 text-2xl font-extrabold text-amber-700">{items.filter((x) => x.status !== 'Completed' && x.status !== 'Addressed' && x.status !== 'Approved').length}</p></Card>
+      <Card><p className="text-xs text-ink-500">Completed</p><p className="mt-1 text-2xl font-extrabold text-emerald-700">{items.filter((x) => ['Completed', 'Addressed', 'Approved'].includes(x.status)).length}</p></Card>
+    </div>
+    <Group>{filtered.map((item, i) => <ListRow key={item.id} icon={config.icon} title={item.primary} subtitle={`${item.id} · ${item.secondary} · ${item.meta}`} right={<div className="flex items-center gap-2"><StatusBadge s={item.status} />{!['Completed', 'Addressed', 'Approved'].includes(item.status) && <Button size="sm" variant="soft" onClick={() => update(item)}>{config.action}</Button>}</div>} last={i === filtered.length - 1} />)}{!filtered.length && <EmptyState icon={Search} title={`No ${config.title.toLowerCase()} found`} body="Try another search term." />}</Group>
+    <Button variant="secondary" icon={Plus} onClick={() => { const item = { id: `${kind === 'requirements' ? 'REQ' : kind === 'supply-gaps' ? 'GAP' : 'QTE'}-${Date.now()}`, primary: config.add, secondary: 'New admin record', meta: 'Added in this browser session', status: 'New' }; setItems((all) => [item, ...all]); toast(`${config.add} added`) }}>{config.add}</Button>
+  </Screen>
 }
 
 export function AdminSettings() {
@@ -251,11 +328,11 @@ const PERMS = [
   ['Commercial & platform settings', [0, 0, 0, 1]],
   ['View reports & audit logs', [0, 0, 0, 1]],
 ]
-export function UsersScreen() {
+export function UsersScreen({ params = {} }) {
   const nav = useNav()
   const { users } = useApp()
   const [q, setQ] = useState('')
-  const [role, setRole] = useState('All')
+  const [role, setRole] = useState(params.role || 'All')
   const list = users.filter((u) => (role === 'All' || u.role === role) && (!q || u.name.toLowerCase().includes(q.toLowerCase())))
   return (
     <Screen title="Users" back={false} right={<IconBtn label="Roles" onClick={() => nav.go('ad_roles')}><KeyRound size={20} /></IconBtn>}>

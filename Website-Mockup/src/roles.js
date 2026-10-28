@@ -1,6 +1,6 @@
 import {
   Home, Compass, ClipboardList, MessageCircle, User, LayoutDashboard, Briefcase, Package, MoreHorizontal, Users, CalendarClock,
-  Wallet, ShieldCheck, BarChart3, Settings,
+  Wallet, ShieldCheck, BarChart3, Settings, LineChart, UserRound, Store, Megaphone, CreditCard, TicketPercent, AlertOctagon, Image, History, Camera, Tag, HelpCircle, Languages, Rocket, Bot, CalendarRange, ClipboardCheck, GitBranch, FileSearch, ShieldAlert, FileCog, Activity, SlidersHorizontal, Boxes,
 } from 'lucide-react'
 
 export const ROLES = [
@@ -52,4 +52,13 @@ export const TABS = {
     { id: 'ad_more', k: 'more', icon: Settings },
   ],
 }
+
+export const ADMIN_SIDEBAR = [
+  { label: 'Overview', items: [{ id: 'ad_dash', label: 'Dashboard', icon: LayoutDashboard }, { id: 'ad_analytics', label: 'Analytics', icon: LineChart }] },
+  { label: 'Users', items: [{ id: 'ad_vendors', label: 'Vendors', icon: Store }, { id: 'ad_customers', label: 'Customers', icon: UserRound }, { id: 'ad_agents', label: 'Sales Agents', icon: Users }] },
+  { label: 'Operations', items: [{ id: 'ad_notifications', label: 'Send notification', icon: Megaphone }, { id: 'ad_settings', label: 'Plans & add-ons', icon: CreditCard }, { id: 'ad_coupons', label: 'Coupons', icon: TicketPercent }, { id: 'ad_disputes', label: 'Disputes', icon: AlertOctagon }, { id: 'ad_photo_approvals', label: 'Photo approvals', icon: Image }, { id: 'ad_previous', label: 'Previous work', icon: History }, { id: 'ad_profile_images', label: 'Profile images', icon: Camera }, { id: 'ad_shop_leads', label: 'Shop leads', icon: Tag }] },
+  { label: 'Platform', items: [{ id: 'ad_categories', label: 'Categories', icon: Tag }, { id: 'ad_faqs', label: 'FAQs', icon: HelpCircle }] },
+  { label: 'RFQ Console', items: [{ id: 'ad_requirements', label: 'Requirements', icon: ClipboardCheck }, { id: 'ad_supply_gaps', label: 'Supply gaps', icon: GitBranch }, { id: 'ad_quote_moderation', label: 'Quote moderation', icon: FileSearch }, { id: 'ad_category_templates', label: 'Category templates', icon: FileCog }, { id: 'ad_rfq_health', label: 'RFQ health', icon: ShieldAlert }] },
+  { label: 'System', items: [{ id: 'ad_reports', label: 'Reports', icon: BarChart3 }, { id: 'ad_platform_settings', label: 'Platform settings', icon: SlidersHorizontal }, { id: 'ad_audit', label: 'Audit log', icon: ClipboardList }] },
+]
 

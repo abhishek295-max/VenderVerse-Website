@@ -251,6 +251,76 @@
   transform: translateY(4px) scale(1.012);
   filter: drop-shadow(0 25px 34px rgba(15,92,99,.24));
 }
+.vv-c-home .vv-hero-showcase {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 24px;
+}
+.vv-c-home .vv-hero-showcase .vv-hero-image {
+  animation: none;
+  opacity: 0;
+  transform: translateY(8px) scale(.985);
+  transition: opacity .9s ease, transform 1.05s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+}
+.vv-c-home .vv-hero-showcase .vv-hero-image.is-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.vv-c-home .vv-hero-showcase-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 999px;
+  color: #164c52;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 5px 14px rgba(15,92,99,.18);
+  transform: translateY(-50%);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.vv-c-home .vv-hero-showcase-arrow-left { left: 12px; }
+.vv-c-home .vv-hero-showcase-arrow-right { right: 12px; }
+.vv-c-home .vv-hero-showcase-arrow:hover { background: #fff; box-shadow: 0 7px 18px rgba(15,92,99,.26); transform: translateY(-50%) scale(1.08); }
+.vv-c-home .vv-hero-showcase-arrow:active { transform: translateY(-50%) scale(.95); }
+.vv-c-home .vv-hero-showcase-arrow:focus-visible { outline: 2px solid #087e79; outline-offset: 3px; }
+.vv-c-home .vv-hero-showcase-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  gap: 7px;
+  transform: translateX(-50%);
+  padding: 6px 9px;
+  border: 1px solid rgba(255,255,255,.65);
+  border-radius: 999px;
+  background: rgba(15,92,99,.18);
+  backdrop-filter: blur(8px);
+}
+.vv-c-home .vv-hero-showcase-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.55);
+  transition: width .3s ease, background .3s ease;
+}
+.vv-c-home .vv-hero-showcase-dots button.is-active {
+  width: 22px;
+  background: #fff;
+}
+.vv-c-home .vv-hero-showcase-dots button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
 .vv-c-home .vv-hero-feature-panel, .vv-c-home .vv-hero-proof { display: none; }
 .vv-c-home .vv-hero-side::before { content: ''; position: absolute; inset: 10px 0 0 12px; border: 1px solid rgba(15,92,99,.16); border-radius: 24px; background: radial-gradient(circle at 50% 45%, rgba(52,163,156,.18), transparent 48%), linear-gradient(145deg, rgba(255,255,255,.72), rgba(217,240,230,.72)); box-shadow: 0 18px 44px rgba(15,92,99,.14); }
 .vv-c-home .vv-hero-stage { inset: 10px 0 0 12px; place-items: center; filter: drop-shadow(0 20px 28px rgba(15,92,99,.18)); }

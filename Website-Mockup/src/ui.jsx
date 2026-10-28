@@ -6,7 +6,13 @@ import {
 import { useNav } from './nav.jsx'
 
 export const cx = (...a) => a.filter(Boolean).join(' ')
-export const fmt = (n, currency = 'INR') => new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(Math.round(Number(n) || 0))
+export const fmt = (n, currency) => {
+  let active = currency
+  if (!active && typeof window !== 'undefined') {
+    try { active = JSON.parse(window.localStorage.getItem('vendorverse.website.state.v2') || '{}')?.locale?.currency } catch { /* use INR */ }
+  }
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: active || 'INR', maximumFractionDigits: 0 }).format(Math.round(Number(n) || 0))
+}
 
 /* ---------- colour tones ---------- */
 export const GRAD = {

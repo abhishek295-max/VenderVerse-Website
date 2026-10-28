@@ -1,9 +1,9 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react'
-import { AppProvider, useApp } from './store.jsx'
+import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin } from 'lucide-react'
+import { AppProvider, COUNTRY_SETTINGS, LOCATION_PRESETS, useApp } from './store.jsx'
 import { canOpenRoute } from './services/authorization.js'
 import { NavProvider, useNav } from './nav.jsx'
-import { HOME, TABS, ROLES } from './roles.js'
+import { HOME, TABS, ROLES, ADMIN_SIDEBAR } from './roles.js'
 import { SCREENS, GROUPS } from './registry.jsx'
 import { Logo } from './screens/auth.jsx'
 import { FRS, NFR, MVP, PHASE2, ACCEPTANCE, DECISIONS, ROLE_TABLE } from './specs.js'
@@ -211,21 +211,23 @@ function SpecPanel() {
 function WebHeader({ onMenu }) {
   const nav = useNav()
   const { lang, setLang, locale, setLocale, me, setMe, t } = useApp()
+  const [locationOpen, setLocationOpen] = useState(false)
+  const [locationQuery, setLocationQuery] = useState('')
   const screen = SCREENS[nav.id] || SCREENS.welcome
   const tabs = TABS[me.role || 'customer'] || TABS.customer
   const activeTab = nav.stack.slice().reverse().map((entry) => tabs.find((tab) => tab.id === entry.id)).find(Boolean)?.id || nav.id
   return (
     <header className="sticky top-0 z-40 shrink-0 border-b border-ink-200 bg-white/95 shadow-[0_2px_10px_rgba(20,40,75,.04)] backdrop-blur">
       <div className="mx-auto flex h-[72px] max-w-[1600px] items-center gap-3 px-4 sm:px-7 lg:px-10">
-        <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left" aria-label="VendorVerse home"><Logo size={42} /><span className="hidden sm:block"><span className="block text-[18px] font-black leading-tight tracking-tight text-ink-900">VendorVerse</span><span className="block text-[11px] font-medium text-ink-500">Products · services · quotes</span></span></button>
+          <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left" aria-label="VendorVerse home"><Logo size={42} /><span className="hidden sm:block"><span className="block text-[18px] font-black leading-tight tracking-tight text-ink-900">VendorVerse</span><span className="block text-[11px] font-medium text-ink-500">Global Marketplace · products · services · quotes</span></span></button>
         <nav className="no-scrollbar ml-3 hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto md:flex" aria-label="Main navigation">
           {tabs.map((tab) => { const on = activeTab === tab.id; return <button key={tab.id} onClick={() => nav.reset(tab.id)} aria-current={on ? 'page' : undefined} className={cx('flex h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-[13px] font-bold transition', on ? 'bg-brand-50 text-brand-800' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900')}><tab.icon size={17} />{me.role === 'customer' && tab.id === 'c_activity' ? 'RFQs' : t(tab.k)}</button> })}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>
           {me.loggedIn && (me.hasVendorAccount || (me.role === 'business' && me.businessWorkspace)) && <button onClick={() => { const nextRole = me.role === 'business' ? 'vendor' : me.role === 'vendor' ? 'customer' : 'vendor'; setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : nextRole === 'vendor' && me.vendorOwnerName ? me.vendorOwnerName : (me.vendorName || me.name), buyerMode: false }); nav.reset(nextRole === 'customer' ? 'c_home' : 'v_dash') }} className="flex h-10 items-center gap-1.5 rounded-xl bg-brand-50 px-2.5 text-xs font-bold text-brand-800 hover:bg-brand-100" title={me.role === 'business' ? 'Switch to vendor workspace' : me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor workspace'}><ArrowLeftRight size={16} /><span className="hidden sm:inline">{me.role === 'business' ? 'Vendor' : me.role === 'vendor' ? 'Customer' : 'Vendor'}</span></button>}
-          <label className="hidden sm:block"><span className="sr-only">Country or region</span><select value={locale.country} onChange={(e) => { const country = e.target.value; const defaults = { IN: { currency: 'INR', timeZone: 'Asia/Kolkata' }, AE: { currency: 'AED', timeZone: 'Asia/Dubai' }, GB: { currency: 'GBP', timeZone: 'Europe/London' }, US: { currency: 'USD', timeZone: 'America/New_York' } }; setLocale({ ...locale, country, ...defaults[country] }) }} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="IN">India</option><option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="US">United States</option></select></label>
-          <label className="hidden lg:block"><span className="sr-only">Currency</span><select value={locale.currency} onChange={(e) => setLocale({ ...locale, currency: e.target.value })} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="INR">INR</option><option value="AED">AED</option><option value="GBP">GBP</option><option value="USD">USD</option></select></label>
+          <div className="relative hidden sm:block"><button onClick={() => setLocationOpen((v) => !v)} className="max-w-[210px] truncate rounded-xl bg-ink-50 px-3 py-2 text-left text-xs font-bold text-ink-700 hover:bg-brand-50" title={t('searchLocation')}><MapPin size={14} className="mr-1 inline text-brand-700" />{locale.city || 'Jaipur'}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</button>{locationOpen && <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] rounded-2xl border border-ink-200 bg-white p-3 shadow-2xl"><div className="relative"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" /><input autoFocus value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} placeholder={t('searchLocation')} className="h-10 w-full rounded-xl bg-ink-50 pl-9 pr-3 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" /></div><div className="mt-2 max-h-56 overflow-y-auto">{Object.keys(COUNTRY_SETTINGS).filter((country) => `${country} ${country === 'India' ? 'Jaipur Rajasthan Delhi Mumbai' : country === 'Germany' ? 'Berlin Bavaria' : country === 'China' ? 'Shenzhen Guangdong' : ''}`.toLowerCase().includes(locationQuery.toLowerCase())).map((country) => { const s = COUNTRY_SETTINGS[country]; const cities = country === 'India' ? ['Jaipur', 'Delhi', 'Mumbai'] : country === 'Germany' ? ['Berlin', 'Munich'] : country === 'China' ? ['Shenzhen', 'Shanghai'] : [country === 'United Arab Emirates' ? 'Dubai' : country === 'United Kingdom' ? 'London' : 'New York']; return <div key={country} className="border-b border-ink-100 py-2 last:border-0"><p className="px-2 text-[11px] font-bold uppercase tracking-wide text-ink-400">{country}</p>{cities.map((city) => <button key={city} onClick={() => { const place = city === 'Dubai' ? { state: 'Dubai' } : city === 'London' ? { state: 'England' } : city === 'New York' ? { state: 'New York' } : city === 'Munich' || city === 'Berlin' ? { state: 'Bavaria' } : city === 'Shanghai' || city === 'Shenzhen' ? { state: 'Guangdong' } : { state: city === 'Jaipur' ? 'Rajasthan' : city === 'Delhi' ? 'Delhi' : 'Maharashtra' }; setLocale({ ...locale, ...s, ...place, countryName: country, city, coverage: locale.coverage || 'local' }); setLocationOpen(false); setLocationQuery('') }} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm font-semibold text-ink-700 hover:bg-brand-50"><span>{city}, {country}</span><span className="text-xs text-ink-400">{s.currency}</span></button>)}</div> })}</div></div>}</div>
+          <label className="hidden lg:block"><span className="sr-only">Currency</span><select value={locale.currency} onChange={(e) => setLocale({ ...locale, currency: e.target.value })} className="h-10 rounded-xl bg-transparent px-2 text-xs font-semibold text-ink-600 outline-none hover:bg-ink-50"><option value="INR">INR</option><option value="AED">AED</option><option value="GBP">GBP</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option></select></label>
           <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
           <button onClick={() => nav.go('notifications')} className="relative grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50" aria-label="Notifications"><Bell size={19} /></button>
           {!me.loggedIn && <button onClick={() => nav.go('login')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Sign in</button>}
@@ -273,14 +275,8 @@ function AdminSidebar({ collapsed, onToggle, onNavigate, onLogout, me, t, active
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>
       </div>
-      <nav className="vv-agent-sidebar-nav" aria-label="Admin pages">
-        {TABS.admin.map((tab) => {
-          const Icon = tab.icon
-          const selected = activeId === tab.id
-          return <button key={tab.id} type="button" className={cx('vv-agent-sidebar-link', selected && 'is-active')} onClick={() => onNavigate(tab.id)} aria-current={selected ? 'page' : undefined} title={collapsed ? t(tab.k) : undefined}>
-            <Icon size={19} />{!collapsed && <span>{t(tab.k)}</span>}
-          </button>
-        })}
+      <nav className="vv-agent-sidebar-nav vv-admin-sidebar-nav" aria-label="Admin pages">
+        {ADMIN_SIDEBAR.map((group) => <div key={group.label} className="vv-admin-sidebar-group"><p className="vv-admin-sidebar-label">{collapsed ? '' : group.label}</p>{group.items.map((item) => { const Icon = item.icon; const selected = activeId === item.id; return <button key={item.id} type="button" className={cx('vv-agent-sidebar-link', selected && 'is-active')} onClick={() => onNavigate(item.id)} aria-current={selected ? 'page' : undefined} title={collapsed ? item.label : undefined}><Icon size={19} />{!collapsed && <span>{item.label}</span>}</button> })}</div>)}
       </nav>
       <div className="vv-agent-sidebar-bottom">
         {!collapsed && <div className="vv-agent-sidebar-user"><span className="vv-agent-sidebar-avatar">{(me.name || 'Priya Nair').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</span><span><b>{me.name || 'Priya Nair'}</b><small>Super Admin</small></span></div>}
@@ -299,7 +295,8 @@ function Shell() {
   const [adminSidebarCollapsed, setAdminSidebarCollapsed] = useState(false)
   const desktop = w >= 768
   const showAgentSidebar = me.role === 'agent' && ['a_home', 'a_leads', 'a_earnings', 'a_followups', 'a_profile'].includes(nav.id)
-  const showAdminSidebar = me.role === 'admin' && ['ad_dash', 'ad_approvals', 'ad_users', 'ad_reports', 'ad_more'].includes(nav.id)
+  const adminSidebarIds = ADMIN_SIDEBAR.flatMap((group) => group.items.map((item) => item.id)).concat(['ad_approvals', 'ad_more', 'ad_vendors', 'ad_vendor', 'ad_vendor_new', 'ad_listings', 'ad_listing', 'ad_users', 'ad_user', 'ad_roles', 'ad_category', 'ad_agent', 'ad_dispute'])
+  const showAdminSidebar = me.role === 'admin' && adminSidebarIds.includes(nav.id)
   const agentLogout = () => {
     setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
     nav.reset('c_home')
@@ -328,7 +325,7 @@ function Shell() {
   return (
     <div className={cx('flex h-full min-h-0 bg-white', showAgentSidebar ? 'vv-agent-shell' : showAdminSidebar ? 'vv-admin-shell' : 'flex-col')}>
       {showAgentSidebar && <AgentSidebar collapsed={agentSidebarCollapsed} onToggle={() => setAgentSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={agentLogout} me={me} t={t} activeId={nav.id} />}
-      {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
+      {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={jump} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
       <div className={cx('flex min-h-0 min-w-0 flex-1 flex-col', showAgentSidebar && 'vv-agent-main', showAdminSidebar && 'vv-admin-main')}>
         <WebHeader onMenu={() => setDrawer(true)} />
         <main className="relative flex min-h-0 flex-1 flex-col bg-white">
