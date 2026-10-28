@@ -30,11 +30,11 @@ export function useSignIn() {
 export function Splash() {
   const nav = useNav()
   useEffect(() => {
-    const t = setTimeout(() => nav.reset('welcome'), 1600)
+    const t = setTimeout(() => nav.reset('c_home'), 1600)
     return () => clearTimeout(t)
   }, [])
   return (
-    <div onClick={() => nav.reset('welcome')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-ink-900 text-white">
+    <div onClick={() => nav.reset('c_home')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-ink-900 text-white">
       <div className="absolute -left-20 -top-20 size-72 rounded-full bg-white/10" />
       <div className="absolute -bottom-24 -right-16 size-80 rounded-full bg-white/5" />
       <div className="vv-splash-loader"><div className="vv-splash-orbit vv-splash-orbit-a" /><div className="vv-splash-orbit vv-splash-orbit-b" /><div className="vv-splash-core"><Logo size={78} light /></div></div>
