@@ -117,3 +117,77 @@
     transition-duration: .01ms !important;
   }
 }
+
+/* Slate & Emerald Pro theme for the existing authenticated workspaces. */
+.vv-agent-shell,
+.vv-admin-shell { background: #f1f5f3; }
+.vv-agent-shell .vv-agent-sidebar,
+.vv-admin-shell .vv-agent-sidebar {
+  border-right-color: #245443;
+  background: #12352b;
+  box-shadow: 6px 0 22px rgba(18,53,43,.12);
+}
+.vv-agent-shell .vv-agent-sidebar-brand-copy b,
+.vv-admin-shell .vv-agent-sidebar-brand-copy b { color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-brand-copy span,
+.vv-admin-shell .vv-agent-sidebar-brand-copy span { color: #b9d4c7; }
+.vv-agent-shell .vv-agent-sidebar-toggle,
+.vv-admin-shell .vv-agent-sidebar-toggle { border-color: #356452; background: #245443; color: #d9eee4; }
+.vv-agent-shell .vv-agent-sidebar-toggle:hover,
+.vv-admin-shell .vv-agent-sidebar-toggle:hover { border-color: #63c79b; background: #2d644f; color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-link,
+.vv-admin-shell .vv-agent-sidebar-link { color: #b9d4c7; }
+.vv-agent-shell .vv-agent-sidebar-link svg,
+.vv-admin-shell .vv-agent-sidebar-link svg { background: #245443; color: #b9e2cf; }
+.vv-agent-shell .vv-agent-sidebar-link:hover,
+.vv-admin-shell .vv-agent-sidebar-link:hover { background: #1b4638; color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-link.is-active,
+.vv-admin-shell .vv-agent-sidebar-link.is-active { background: #245443; color: #fff; box-shadow: inset 3px 0 #63c79b; }
+.vv-agent-shell .vv-agent-sidebar-link.is-active svg,
+.vv-admin-shell .vv-agent-sidebar-link.is-active svg { background: #087f5b; color: #fff; box-shadow: 0 5px 12px rgba(0,0,0,.16); }
+.vv-agent-shell .vv-agent-sidebar-user,
+.vv-admin-shell .vv-agent-sidebar-user { border-color: #356452; background: #1b4638; box-shadow: none; }
+.vv-agent-shell .vv-agent-sidebar-user b,
+.vv-admin-shell .vv-agent-sidebar-user b { color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-user small,
+.vv-admin-shell .vv-agent-sidebar-user small { color: #b9d4c7; }
+.vv-agent-shell .vv-agent-sidebar-avatar,
+.vv-admin-shell .vv-agent-sidebar-avatar { background: #087f5b; }
+.vv-agent-shell .vv-agent-sidebar-logout,
+.vv-admin-shell .vv-agent-sidebar-logout { background: rgba(220,38,38,.14); color: #fecaca; }
+.vv-agent-shell .vv-agent-sidebar-logout:hover,
+.vv-admin-shell .vv-agent-sidebar-logout:hover { background: #b42318; color: #fff; }
+.vv-agent-main > header,
+.vv-admin-main > header { border-color: #dde6e0; background: rgba(255,255,255,.94); box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 5px 18px rgba(23,41,35,.04); }
+.vv-agent-main .vv-screen-layout,
+.vv-admin-main .vv-screen-layout { background: #f1f5f3; }
+.vv-agent-main .vv-screen-scroll,
+.vv-admin-main .vv-screen-scroll { background: #f1f5f3; }
+.vv-agent-main .vv-screen-scroll > div,
+.vv-admin-main .vv-screen-scroll > div { color: #1c2b25; }
+.vv-agent-main .vv-screen-scroll .rounded-2xl.bg-white,
+.vv-admin-main .vv-screen-scroll .rounded-2xl.bg-white,
+.vv-agent-main .vv-screen-scroll .vv-admin-reference-panel,
+.vv-admin-main .vv-screen-scroll .vv-admin-reference-panel {
+  border-color: #dde6e0;
+  box-shadow: 0 2px 10px rgba(23,41,35,.04);
+}
+.vv-agent-main .vv-screen-scroll .rounded-2xl.bg-white:hover,
+.vv-admin-main .vv-screen-scroll .rounded-2xl.bg-white:hover { box-shadow: 0 8px 24px rgba(23,41,35,.08); }
+.vv-admin-reference-dashboard { background: #f1f5f3; color: #1c2b25; }
+.vv-admin-reference-kpis > *,
+.vv-admin-reference-panel,
+.vv-admin-reference-footer-stats button { border-color: #dde6e0; box-shadow: 0 2px 10px rgba(23,41,35,.04); }
+.vv-admin-reference-heading h1,
+.vv-admin-reference-panel h2,
+.vv-admin-reference-footer-stats b { color: #1c2b25; }
+.vv-admin-reference-row:hover { background: #f1faf5; }
+
+.vv-vendor-workspace-route,
+.vv-vendor-message-route { background: #f1f5f3; color: #1c2b25; }
+.vv-vendor-workspace-route .vv-screen-scroll,
+.vv-vendor-message-route .vv-screen-scroll { background: #f1f5f3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vv-agent-shell *, .vv-admin-shell *, .vv-vendor-workspace-route *, .vv-vendor-message-route * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
