@@ -131,6 +131,7 @@ input[type="date"], input[type="time"] { min-height: 1.5rem; }
   header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
     gap: 6px;
     padding-inline: 12px;
+    overflow: hidden;
   }
 
   header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] > button {
@@ -149,5 +150,33 @@ input[type="date"], input[type="time"] { min-height: 1.5rem; }
 
   header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
     flex-basis: 155px;
+  }
+}
+
+/* Compact tablet navbar: keep the first item fully visible and prevent the
+   brand/navigation groups from competing for the same horizontal space. */
+@media (min-width: 768px) and (max-width: 980px) {
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child {
+    width: 42px;
+    overflow: visible;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child > span {
+    display: none;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] {
+    flex: 1 1 0;
+    justify-content: flex-start;
+    padding-inline: 4px;
+    scroll-padding-inline: 4px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
+    flex-basis: 132px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative > button {
+    padding-inline: 8px;
   }
 }
